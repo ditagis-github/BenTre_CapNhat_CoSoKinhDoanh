@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="spiner_border_color">#ccc</color>
+    <color name="spiner_color">#333</color>
+
+    <color name="colorPrimary">#578fc8</color>
+    <color name="colorPrimaryDark">#4985c3</color>
+    <color name="colorAccent">#66CDAA</color>
+    <color name="colorRed">#ff0000</color>
+    <color name="colorWhite">#ffffff</color>
+    <color name="colorGray">#bbbbbb</color>
+    <color name="colorPrimary_1">#578fc8</color>
+    <color name="colorPrimaryDark_1">#4985c3</color>
+    <color name="colorAccent_1">#d6e4f2</color>
+    <color name="colorBackground_1">#ffffff</color>
+    <color name="colorTextColor_1">#000000</color>
+    <color name="colorTextLogin_1">#000000</color>
+
+    <!--Theme 2-->
+    <color name="colorPrimaryLight">#029dea</color>
+</resources>

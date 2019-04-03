@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--diemdanhgianuoc-->
+
+    <!--diemdanhgianuoc-->
+
+    <string-array name="unedit_Fields">
+        <item>OBJECTID</item>
+        <item>IDDiemDanhGia</item>
+        <item>IDMauKiemNghiem</item>
+        <item>NgayCapNhat</item>
+    </string-array>
+    <string-array name="trangthai_arrays">
+        <item></item>
+        <item>Chưa xử lý</item>
+        <item>Đã xử lý</item>
+    </string-array>
+</resources>
