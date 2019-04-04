@@ -33,10 +33,10 @@ public class ThongKeAdapter extends ArrayAdapter<ThongKeAdapter.Item> {
         }
         Item item = items.get(position);
         LinearLayout layout = (LinearLayout) convertView.findViewById(R.id.layout_tracuu);
-        TextView txt_thongke_mota = (TextView) convertView.findViewById(R.id.txt_thongke_mota);
+        TextView txt_thongke_mota = (TextView) convertView.findViewById(R.id.txt_tracuu_trangthai);
         //todo
         txt_thongke_mota.setText(item.getMota());
-        TextView txt_thongke_thoigian = (TextView) convertView.findViewById(R.id.txt_thongke_thoigian);
+        TextView txt_thongke_thoigian = (TextView) convertView.findViewById(R.id.txt_tracuu_diadiem);
         //todo
         if(item.getThoigianhienthi() != null) {
             txt_thongke_thoigian.setText(item.getThoigianhienthi());

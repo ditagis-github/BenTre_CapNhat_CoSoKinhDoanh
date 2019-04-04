@@ -6,9 +6,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,9 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -49,6 +44,7 @@ import android.widget.Toast;
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.ArcGISRuntimeException;
+import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
@@ -67,14 +63,10 @@ import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.util.ListenableList;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import bentre.ditagis.com.capnhatthongtin.adapter.DanhSachDiemDanhGiaAdapter;
+import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
 import bentre.ditagis.com.capnhatthongtin.async.PreparingAsycn;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.LayerInfoDTG;
@@ -84,11 +76,11 @@ import bentre.ditagis.com.capnhatthongtin.libs.FeatureLayerDTG;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
 import bentre.ditagis.com.capnhatthongtin.utities.CheckConnectInternet;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
-import bentre.ditagis.com.capnhatthongtin.utities.ImageFile;
 import bentre.ditagis.com.capnhatthongtin.utities.LocationHelper;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     private Uri mUri;
@@ -98,22 +90,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Callout mCallout;
     private List<FeatureLayerDTG> mFeatureLayerDTGS;
     private MapViewHandler mMapViewHandler;
-    private static double LATITUDE = 10.1809655;
-    private static double LONGTITUDE = 106.4011284;
+    private static double LATITUDE = 10.3952832;//10.1809655;
+    private static double LONGTITUDE = 106.380246;// 106.4011284;
     private static int LEVEL_OF_DETAIL = 12;
     private SearchView mTxtSearch;
     private ListView mListViewSearch;
-    private DanhSachDiemDanhGiaAdapter danhSachDiemDanhGiaAdapter;
+    private TableCoSoKinhDoanhAdapter tableCoSoKinhDoanhAdapter;
     private ArcGISMapImageLayer hanhChinhImageLayers;
     private LinearLayout mLinnearDisplayLayerBaseMap;
     private FloatingActionButton mFloatButtonLayer, mFloatButtonLocation;
     private CheckBox cb_Layer_HanhChinh;
     private int states[][];
     private int colors[];
-
     private LocationDisplay mLocationDisplay;
-    private int requestCode = 2;
-    private static final int REQUEST_ID_IMAGE_CAPTURE = 55;
     String[] reqPermissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
 
     private LocationHelper mLocationHelper;
@@ -185,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void startSignIn() {
         Intent intent = new Intent(this, LoginActivity.class);
-        startActivityForResult(intent, Constant.REQUEST_LOGIN);
+        startActivityForResult(intent, Constant.REQUEST.LOGIN);
     }
 
     private void setOnClickListener() {
@@ -205,16 +194,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         this.mListViewSearch = findViewById(R.id.lstview_search);
         //đưa listview search ra phía sau
         this.mListViewSearch.invalidate();
-        List<DanhSachDiemDanhGiaAdapter.Item> items = new ArrayList<>();
-        this.danhSachDiemDanhGiaAdapter = new DanhSachDiemDanhGiaAdapter(MainActivity.this, items);
-        this.mListViewSearch.setAdapter(danhSachDiemDanhGiaAdapter);
+        List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
+        this.tableCoSoKinhDoanhAdapter = new TableCoSoKinhDoanhAdapter(MainActivity.this, items);
+        this.mListViewSearch.setAdapter(tableCoSoKinhDoanhAdapter);
         this.mListViewSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String objectID = ((DanhSachDiemDanhGiaAdapter.Item) parent.getItemAtPosition(position)).getObjectID();
+                String objectID = ((TableCoSoKinhDoanhAdapter.Item) parent.getItemAtPosition(position)).getObjectID();
                 mMapViewHandler.queryByObjectID(objectID);
-                danhSachDiemDanhGiaAdapter.clear();
-                danhSachDiemDanhGiaAdapter.notifyDataSetChanged();
+                tableCoSoKinhDoanhAdapter.clear();
+                tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -325,11 +314,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void setFeatureService() {
         if (ListObjectDB.getInstance().getLstFeatureLayerDTG().size() == 0) return;
         mFeatureLayerDTGS = new ArrayList<>();
+        MapViewAddDoneLoadingListener mapViewAddDoneLoadingListener = new MapViewAddDoneLoadingListener(MainActivity.this);
         for (final LayerInfoDTG layerInfoDTG : ListObjectDB.getInstance().getLstFeatureLayerDTG()) {
             if (!layerInfoDTG.isView()) continue;
             String url = layerInfoDTG.getUrl();
-            if (!layerInfoDTG.getUrl().startsWith("http"))
-                url = "http:" + layerInfoDTG.getUrl();
             ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
             FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
             featureLayer.setName(layerInfoDTG.getTitleLayer());
@@ -349,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mApplication.setLayer_CoSoKinhDoanhDTG(featureLayerDTG);
             }
             if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.table_cosokinhdoanh))) {
-                mApplication.setTable_CoSoKinhDoanh(featureLayerDTG);
+                mApplication.setTable_CoSoKinhDoanhDTG(featureLayerDTG);
                 mFeatureLayerDTGS.add(featureLayerDTG);
             }
             if (layerInfoDTG.getId().toUpperCase().equals(getString(R.string.IDLayer_Basemap))) {
@@ -361,12 +349,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         ListenableList<ArcGISSublayer> sublayerList = hanhChinhImageLayers.getSublayers();
                         for (ArcGISSublayer sublayer : sublayerList) {
                             addCheckBox_SubLayer((ArcGISMapImageSublayer) sublayer, mLinnearDisplayLayerBaseMap);
-                            String urlSubBaseMap = "http:" + layerInfoDTG.getUrl() + "/" + sublayer.getId();
+                            String urlSubBaseMap = layerInfoDTG.getUrl() + "/" + sublayer.getId();
+                            if (sublayer.getId() == 5) {
+                                mApplication.setSft_HanhChinhXa(new ServiceFeatureTable(urlSubBaseMap));
+                            }
                             if (sublayer.getId() == 6) {
-                                new ServiceFeatureTable(urlSubBaseMap);
+                                mApplication.setSft_HanhChinhHuyen(new ServiceFeatureTable(urlSubBaseMap));
                             }
                         }
+                        mapViewAddDoneLoadingListener.getHanhChinh();
                     }
+
                 });
                 hanhChinhImageLayers.loadAsync();
             }
@@ -381,7 +374,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mMap.addDoneLoadingListener(new Runnable() {
             @Override
             public void run() {
-                new MapViewAddDoneLoadingListener(MainActivity.this);
                 LinearLayout linnearDisplayLayer = (LinearLayout) findViewById(R.id.linnearDisplayLayer);
                 int states[][] = {{android.R.attr.state_checked}, {}};
                 int colors[] = {R.color.colorTextColor_1, R.color.colorTextColor_1};
@@ -480,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 if (!(permissionCheck1 && permissionCheck2)) {
                     // If permissions are not already granted, request permission from the user.
-                    ActivityCompat.requestPermissions(MainActivity.this, reqPermissions, requestCode);
+                    ActivityCompat.requestPermissions(MainActivity.this, reqPermissions, Constant.REQUEST.PERMISS);
                 } else {
                     // Report other unknown failure types to the user - for example, location services may not
                     // be enabled on the device.
@@ -511,15 +503,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mTxtSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                mMapViewHandler.querySearch(query, mListViewSearch, danhSachDiemDanhGiaAdapter);
+                mMapViewHandler.querySearch(query, mListViewSearch, tableCoSoKinhDoanhAdapter);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (newText.length() == 0) {
-                    danhSachDiemDanhGiaAdapter.clear();
-                    danhSachDiemDanhGiaAdapter.notifyDataSetChanged();
+                    tableCoSoKinhDoanhAdapter.clear();
+                    tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
                 }
                 return false;
             }
@@ -550,7 +542,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
         if (id == R.id.nav_tracuu) {
             final Intent intent = new Intent(this, TraCuuActivity.class);
-            this.startActivityForResult(intent, requestCode);
+            this.startActivityForResult(intent, Constant.REQUEST.QUERY);
 
         } else if (id == R.id.nav_logOut) {
             startSignIn();
@@ -562,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public boolean requestPermisson() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE}, REQUEST_ID_IMAGE_CAPTURE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE}, Constant.REQUEST.CAMERA);
         }
         if (Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return false;
@@ -611,14 +603,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 ((FloatingActionButton) findViewById(R.id.floatBtnLayer)).setVisibility(View.VISIBLE);
                 break;
             case R.id.img_layvitri:
-//                mMapViewHandler.capture();
-                capture();
+                Feature featureTBL = mApplication.getSelectedFeatureTBL();
+                if (featureTBL != null) {
+                    mMapViewHandler.addFeature();
+                } else {
+                    MySnackBar.make(mMapView, "Phải chọn CSKD chưa cập nhật trước", false);
+                }
                 break;
             case R.id.floatBtnAdd:
-                ((LinearLayout) findViewById(R.id.linear_addfeature)).setVisibility(View.VISIBLE);
-                ((ImageView) findViewById(R.id.img_map_pin)).setVisibility(View.VISIBLE);
-                ((FloatingActionButton) findViewById(R.id.floatBtnAdd)).setVisibility(View.GONE);
-                mMapViewHandler.setClickBtnAdd(true);
+                addFeature();
                 break;
             case R.id.btn_add_feature_close:
                 ((LinearLayout) findViewById(R.id.linear_addfeature)).setVisibility(View.GONE);
@@ -636,74 +629,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public void capture() {
-        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI.getPath());
-
-        File photo = ImageFile.getFile(this);
-//        this.mUri= FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".my.package.name.provider", photo);
-        this.mUri = Uri.fromFile(photo);
-        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, this.mUri);
-//        this.mUri = Uri.fromFile(photo);
-        startActivityForResult(cameraIntent, REQUEST_ID_IMAGE_CAPTURE);
-    }
-
-    @Nullable
-    private Bitmap getBitmap(String path) {
-
-        Uri uri = Uri.fromFile(new File(path));
-        InputStream in = null;
-        try {
-            final int IMAGE_MAX_SIZE = 1200000; // 1.2MP
-            in = getContentResolver().openInputStream(uri);
-
-            // Decode image size
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-            BitmapFactory.decodeStream(in, null, o);
-            in.close();
-
-
-            int scale = 1;
-            while ((o.outWidth * o.outHeight) * (1 / Math.pow(scale, 2)) > IMAGE_MAX_SIZE) {
-                scale++;
-            }
-            Log.d("", "scale = " + scale + ", orig-width: " + o.outWidth + ", orig-height: " + o.outHeight);
-
-            Bitmap b = null;
-            in = getContentResolver().openInputStream(uri);
-            if (scale > 1) {
-                scale--;
-                // scale to max possible inSampleSize that still yields an image
-                // larger than target
-                o = new BitmapFactory.Options();
-                o.inSampleSize = scale;
-                b = BitmapFactory.decodeStream(in, null, o);
-
-                // resize to desired dimensions
-                int height = b.getHeight();
-                int width = b.getWidth();
-                Log.d("", "1th scale operation dimenions - width: " + width + ", height: " + height);
-
-                double y = Math.sqrt(IMAGE_MAX_SIZE / (((double) width) / height));
-                double x = (y / height) * width;
-
-                Bitmap scaledBitmap = Bitmap.createScaledBitmap(b, (int) x, (int) y, true);
-                b.recycle();
-                b = scaledBitmap;
-
-                System.gc();
-            } else {
-                b = BitmapFactory.decodeStream(in);
-            }
-            in.close();
-
-            Log.d("", "bitmap size - width: " + b.getWidth() + ", height: " + b.getHeight());
-            return b;
-        } catch (IOException e) {
-            Log.e("", e.getMessage(), e);
-            return null;
-        }
+    private void addFeature() {
+        ((LinearLayout) findViewById(R.id.linear_addfeature)).setVisibility(View.VISIBLE);
+        ((ImageView) findViewById(R.id.img_map_pin)).setVisibility(View.VISIBLE);
+        ((FloatingActionButton) findViewById(R.id.floatBtnAdd)).setVisibility(View.GONE);
+        mMapViewHandler.setClickBtnAdd(true);
     }
 
     @SuppressLint("ResourceAsColor")
@@ -737,49 +667,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        try {
-            String returnedResult = data.getExtras().get(getString(R.string.ket_qua_objectid)).toString();
-            if (resultCode == Activity.RESULT_OK) {
-                mMapViewHandler.queryByObjectID(returnedResult);
-            }
-        } catch (Exception e) {
-        }
-
         switch (requestCode) {
-            case REQUEST_ID_IMAGE_CAPTURE:
-                if (resultCode == RESULT_OK) {
-                    if (this.mUri != null) {
-//                    Uri selectedImage = this.mUri;
-//                    getContentResolver().notifyChange(selectedImage, null);
-                        Bitmap bitmap = getBitmap(mUri.getPath());
-                        try {
-                            if (bitmap != null) {
-                                Matrix matrix = new Matrix();
-                                matrix.postRotate(90);
-                                Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-                                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                                rotatedBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-                                byte[] image = outputStream.toByteArray();
-                                Toast.makeText(this, "Đã lưu ảnh", Toast.LENGTH_SHORT).show();
-                                mMapViewHandler.addFeature(image);
-                                //Todo xóa ảnh
-                            }
-                        } catch (Exception e) {
-                        }
-                    }
-                } else if (resultCode == RESULT_CANCELED) {
-                    MySnackBar.make(mMapView, "Hủy chụp ảnh", false);
-                } else {
-                    MySnackBar.make(mMapView, "Lỗi khi chụp ảnh", false);
-                }
-                break;
-            case Constant.REQUEST_LOGIN:
+            case Constant.REQUEST.LOGIN:
                 if (Activity.RESULT_OK != resultCode) {
                     finish();
                     return;
                 } else {
                     initMapView();
                 }
+                break;
+            case Constant.REQUEST.QUERY:
+                if (resultCode == Activity.RESULT_OK) {
+                    addFeature();
+                } else if (requestCode == Activity.RESULT_CANCELED) {
+                    //   todo show popup
+                }
+
                 break;
         }
     }

@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import bentre.ditagis.com.capnhatthongtin.Editing.EditingHoSo_CoSoKinhDoanh;
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.adapter.FeatureViewMoreInfoAdapter;
@@ -65,7 +64,6 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
     private LinearLayout linearLayout;
     private MapView mMapView;
     private FeatureLayerDTG table_CoSoKinhDoanhDTG;
-    private EditingHoSo_CoSoKinhDoanh editingHoSoCoSoKinhDoanh;
     private static double DELTA_MOVE_Y = 0;//7000;
     private DApplication mDApplication;
 
@@ -76,8 +74,6 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         this.mCallout = callout;
         this.mMapView = mMapView;
         this.table_CoSoKinhDoanhDTG = this.mDApplication.getTable_CoSoKinhDoanhDTG();
-        this.editingHoSoCoSoKinhDoanh = new EditingHoSo_CoSoKinhDoanh(mainActivity, table_CoSoKinhDoanhDTG, this.layer_CoSoKinhDoanh);
-
     }
 
 
@@ -112,13 +108,13 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attributes.get(field.getName());
             switch (field.getName()) {
-                case Constant.IDDIEM_DANH_GIA:
+                case Constant.CSKDLayerFields.TenCSKD:
                     if (value != null)
-                        ((TextView) linearLayout.findViewById(R.id.txt_id_su_co)).setText(value.toString());
+                        ((TextView) linearLayout.findViewById(R.id.txt_ten_cskd)).setText(value.toString());
                     break;
-                case Constant.DIACHI:
+                case Constant.CSKDLayerFields.DiaChi:
                     if (value != null)
-                        ((TextView) linearLayout.findViewById(R.id.txt_vi_tri_su_co)).setText(value.toString());
+                        ((TextView) linearLayout.findViewById(R.id.txt_vitri_cskd)).setText(value.toString());
                     break;
             }
         }
@@ -157,16 +153,6 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
                 @Override
                 public void onClick(View v) {
                     viewMoreInfo();
-                }
-            });
-
-            ImageButton imgBtn_viewtablethoigian = (ImageButton) linearLayout.findViewById(R.id.imgBtn_viewtablethoigian);
-            imgBtn_viewtablethoigian.setVisibility(View.VISIBLE);
-            ((ImageButton) linearLayout.findViewById(R.id.imgBtn_viewtablethoigian)).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    editingHoSoCoSoKinhDoanh.showDanhSachMauDanhGia(mSelectedArcGISFeature);
-
                 }
             });
         }
@@ -216,9 +202,9 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         String typeIdField = mSelectedArcGISFeature.getFeatureTable().getTypeIdField();
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attr.get(field.getName());
-            if (field.getName().equals(Constant.IDDIEM_DANH_GIA)) {
+            if (field.getName().equals(Constant.CSKDLayerFields.TenCSKD)) {
                 if (value != null)
-                    ((TextView) layout.findViewById(R.id.txt_alertdialog_id_su_co)).setText(value.toString());
+                    ((TextView) layout.findViewById(R.id.txt_ten_cskd)).setText(value.toString());
             } else {
                 FeatureViewMoreInfoAdapter.Item item = new FeatureViewMoreInfoAdapter.Item();
                 item.setAlias(field.getAlias());
@@ -482,7 +468,6 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
                                             try {
                                                 edits = serverResult.get();
                                                 if (edits.size() > 0) {
-                                                    editingHoSoCoSoKinhDoanh.deleteDanhSachMauDanhGia(mSelectedArcGISFeature);
                                                     if (!edits.get(0).hasCompletedWithErrors()) {
                                                         Log.e("", "Feature successfully updated");
                                                     }

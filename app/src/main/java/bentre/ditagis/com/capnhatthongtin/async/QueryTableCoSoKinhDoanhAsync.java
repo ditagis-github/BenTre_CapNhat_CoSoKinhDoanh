@@ -12,46 +12,35 @@ import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.TraCuuActivity;
-import bentre.ditagis.com.capnhatthongtin.adapter.DanhSachDiemDanhGiaAdapter;
-import bentre.ditagis.com.capnhatthongtin.utities.Constant;
+import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
 
 /**
  * Created by ThanLe on 4/16/2018.
  */
 
-public class QueryDiemDanhGiaAsync extends AsyncTask<String, List<DanhSachDiemDanhGiaAdapter.Item>, Void> {
+public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCoSoKinhDoanhAdapter.Item>, Void> {
     private ProgressDialog dialog;
     private Context mContext;
     private ServiceFeatureTable serviceFeatureTable;
-    private DanhSachDiemDanhGiaAdapter danhSachDiemDanhGiaAdapter;
+    private TableCoSoKinhDoanhAdapter tableCoSoKinhDoanhAdapter;
     private TextView txtTongItem;
 
-    public QueryDiemDanhGiaAsync(TraCuuActivity traCuuActivity, ServiceFeatureTable serviceFeatureTable, TextView txtTongItem, DanhSachDiemDanhGiaAdapter adapter, AsyncResponse asyncResponse) {
+    public QueryTableCoSoKinhDoanhAsync(TraCuuActivity traCuuActivity, ServiceFeatureTable serviceFeatureTable, TextView txtTongItem, TableCoSoKinhDoanhAdapter adapter, AsyncResponse asyncResponse) {
         this.delegate = asyncResponse;
         mContext = traCuuActivity;
         this.serviceFeatureTable = serviceFeatureTable;
-        this.danhSachDiemDanhGiaAdapter = adapter;
+        this.tableCoSoKinhDoanhAdapter = adapter;
         this.txtTongItem = txtTongItem;
         dialog = new ProgressDialog(traCuuActivity, android.R.style.Theme_Material_Dialog_Alert);
     }
 
-    public QueryDiemDanhGiaAsync(MainActivity mainActivity, ServiceFeatureTable serviceFeatureTable, TextView txtTongItem, DanhSachDiemDanhGiaAdapter adapter, AsyncResponse asyncResponse) {
-        this.delegate = asyncResponse;
-        mContext = mainActivity;
-        this.serviceFeatureTable = serviceFeatureTable;
-        this.danhSachDiemDanhGiaAdapter = adapter;
-        this.txtTongItem = txtTongItem;
-        dialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
-    }
 
     public interface AsyncResponse {
         void processFinish(List<Feature> features);
@@ -71,7 +60,7 @@ public class QueryDiemDanhGiaAsync extends AsyncTask<String, List<DanhSachDiemDa
 
     @Override
     protected Void doInBackground(String... params) {
-        final List<DanhSachDiemDanhGiaAdapter.Item> items = new ArrayList<>();
+        final List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
         final List<Feature> features = new ArrayList<>();
         QueryParameters queryParameters = new QueryParameters();
         String queryClause = params[0];
@@ -86,12 +75,13 @@ public class QueryDiemDanhGiaAsync extends AsyncTask<String, List<DanhSachDiemDa
 
                     while (iterator.hasNext()) {
                         Feature feature = (Feature) iterator.next();
-                        DanhSachDiemDanhGiaAdapter.Item item = new DanhSachDiemDanhGiaAdapter.Item();
+                        TableCoSoKinhDoanhAdapter.Item item = new TableCoSoKinhDoanhAdapter.Item();
                         Map<String, Object> attributes = feature.getAttributes();
                         item.setObjectID(attributes.get(mContext.getString(R.string.OBJECTID)).toString());
-                        item.setiDDiemDanhGia(attributes.get(mContext.getString(R.string.IDDIEMDANHGIA)).toString());
-                        String format_date = Constant.DATE_FORMAT.format(((Calendar) attributes.get(Constant.NGAY_CAP_NHAT)).getTime());
-                        item.setNgayCapNhat(format_date);
+                        item.setMaKinhDoanh(attributes.get(mContext.getString(R.string.MaKinhDoanh)).toString());
+                        item.setTenDoanhNghiep(attributes.get(mContext.getString(R.string.TenDoanhNghiep)).toString());
+                        item.setToaDoX(attributes.get(mContext.getString(R.string.TOADOX)).toString());
+                        item.setToaDoY(attributes.get(mContext.getString(R.string.TOADOY)).toString());
                         item.setDiaChi(attributes.get(mContext.getString(R.string.DIACHI)).toString());
                         items.add(item);
                         features.add(feature);
@@ -110,10 +100,10 @@ public class QueryDiemDanhGiaAsync extends AsyncTask<String, List<DanhSachDiemDa
     }
 
     @Override
-    protected void onProgressUpdate(List<DanhSachDiemDanhGiaAdapter.Item>... values) {
-        danhSachDiemDanhGiaAdapter.clear();
-        danhSachDiemDanhGiaAdapter.setItems(values[0]);
-        danhSachDiemDanhGiaAdapter.notifyDataSetChanged();
+    protected void onProgressUpdate(List<TableCoSoKinhDoanhAdapter.Item>... values) {
+        tableCoSoKinhDoanhAdapter.clear();
+        tableCoSoKinhDoanhAdapter.setItems(values[0]);
+        tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
         if (txtTongItem != null)
             txtTongItem.setText(mContext.getString(R.string.nav_thong_ke_tong_diem) + values[0].size());
         if (dialog != null && dialog.isShowing()) dialog.dismiss();

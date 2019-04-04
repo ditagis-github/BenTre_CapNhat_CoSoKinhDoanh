@@ -21,10 +21,15 @@
 
     <!--Attribute begin-->
     <string name="OBJECTID">OBJECTID</string>
-    <string name="IDDIEMDANHGIA">IDDiemDanhGia</string>
+    <string name="MaKinhDoanh">MaKinhDoanh</string>
     <string name="NGAY_CAP_NHAT">NgayCapNhat</string>
-    <!--Attribute end-->
+    <string name="MaHuyenTP">MaHuyenTP</string>
+    <string name="MaPhuongXa">MaPhuongXa</string>
+    <string name="TOADOX">X</string>
+    <string name="TOADOY">Y</string>
     <string name="DIACHI">DiaChi</string>
+    <!--Attribute end-->
+
 
     <!--Attribute MauKiemNghiem Begin-->TenMau
     <string name="IDMAUKIEMNGHIEM">IDMauKiemNghiem</string>
@@ -46,6 +51,7 @@
     <!--async-->
     <string name="async_dang_xu_ly">Đang xử lý...</string>
     <string name="async_dang_cap_nhat_giao_dien">Đang cập nhật giao diện...</string>
+    <string name="async_dang_tai_du_lieu">Đang tải dữ liệu…</string>
 
 
     <string name="format_day_yearfirst">yyyy-MM-dd HH:mm:ss</string>
@@ -101,6 +107,9 @@
     <string name="question_delete_point">Bạn có chắc chắn xóa điểm này?</string>
     <string name="no_access_permissions">Tài khoản không có quyền truy cập ứng dụng!!!</string>
     <string name="spin_prompt" />
+    <string name="TenDoanhNghiep">TenDoanhNghiep</string>
+    <string name="TT_ChuaXuLi">Chưa xử lý</string>
+    <string name="TT_DaXuLi">Đã xử lý</string>
 
 
 </resources>

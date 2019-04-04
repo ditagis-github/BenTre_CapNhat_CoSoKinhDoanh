@@ -3,6 +3,7 @@ package bentre.ditagis.com.capnhatthongtin.adapter;
 
         import android.annotation.SuppressLint;
         import android.content.Context;
+        import android.graphics.Typeface;
         import android.support.annotation.NonNull;
         import android.view.LayoutInflater;
         import android.view.View;
@@ -14,12 +15,12 @@ package bentre.ditagis.com.capnhatthongtin.adapter;
         import java.util.List;
 
         import bentre.ditagis.com.capnhatthongtin.R;
-public class DanhSachDiemDanhGiaAdapter extends ArrayAdapter<DanhSachDiemDanhGiaAdapter.Item> {
+public class TableCoSoKinhDoanhAdapter extends ArrayAdapter<TableCoSoKinhDoanhAdapter.Item> {
     private Context context;
     private List<Item> items;
 
 
-    public DanhSachDiemDanhGiaAdapter(Context context, List<DanhSachDiemDanhGiaAdapter.Item> items) {
+    public TableCoSoKinhDoanhAdapter(Context context, List<TableCoSoKinhDoanhAdapter.Item> items) {
         super(context, 0, items);
         this.context = context;
         this.items = items;
@@ -65,30 +66,31 @@ public class DanhSachDiemDanhGiaAdapter extends ArrayAdapter<DanhSachDiemDanhGia
             convertView = inflater.inflate(R.layout.item_tracuu, null);
         }
         Item item = items.get(position);
-        TextView txt_tracuu_id = (TextView) convertView.findViewById(R.id.txt_tracuu_id);
-        TextView txt_tracuu_ngaycapnhat = (TextView) convertView.findViewById(R.id.txt_tracuu_ngaycapnhat);
+        TextView txt_tracuu_tencongty = (TextView) convertView.findViewById(R.id.txt_tracuu_tencongty);
+        TextView txt_tracuu_makinhdoanh = (TextView) convertView.findViewById(R.id.txt_tracuu_makinhdoanh);
         TextView txt_tracuu_diachi = (TextView) convertView.findViewById(R.id.txt_tracuu_diachi);
-        txt_tracuu_id.setText(item.getiDDiemDanhGia());
-        txt_tracuu_ngaycapnhat.setText(item.getNgayCapNhat());
+        txt_tracuu_tencongty.setText(item.getTenDoanhNghiep().toUpperCase());
+        txt_tracuu_makinhdoanh.setText(item.getMaKinhDoanh());
         txt_tracuu_diachi.setText(item.getDiaChi());
+        if(item.getToaDoX().equals("") || item.getToaDoX().equals("")){
+            txt_tracuu_tencongty.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+        else {
+            txt_tracuu_tencongty.setTypeface(Typeface.DEFAULT);
+        }
         return convertView;
     }
 
     public static class Item{
         private String objectID;
-        private String iDDiemDanhGia;
-        private String ngayCapNhat;
+        private String tenDoanhNghiep;
+        private String maKinhDoanh;
+        private String toaDoX;
+        private String toaDoY;
         private String diaChi;
 
         public Item() {
         }
-
-        public Item(String objectID, String iDDiemDanhGia, String ngayCapNhat) {
-            this.objectID = objectID;
-            this.iDDiemDanhGia = iDDiemDanhGia;
-            this.ngayCapNhat = ngayCapNhat;
-        }
-
         public String getObjectID() {
             return objectID;
         }
@@ -97,20 +99,20 @@ public class DanhSachDiemDanhGiaAdapter extends ArrayAdapter<DanhSachDiemDanhGia
             this.objectID = objectID;
         }
 
-        public String getiDDiemDanhGia() {
-            return iDDiemDanhGia;
+        public String getMaKinhDoanh() {
+            return maKinhDoanh;
         }
 
-        public void setiDDiemDanhGia(String iDDiemDanhGia) {
-            this.iDDiemDanhGia = iDDiemDanhGia;
+        public void setMaKinhDoanh(String maKinhDoanh) {
+            this.maKinhDoanh = maKinhDoanh;
         }
 
-        public String getNgayCapNhat() {
-            return ngayCapNhat;
+        public String getToaDoX() {
+            return toaDoX;
         }
 
-        public void setNgayCapNhat(String ngayCapNhat) {
-            this.ngayCapNhat = ngayCapNhat;
+        public void setToaDoX(String toaDoX) {
+            this.toaDoX = toaDoX;
         }
 
         public String getDiaChi() {
@@ -119,6 +121,22 @@ public class DanhSachDiemDanhGiaAdapter extends ArrayAdapter<DanhSachDiemDanhGia
 
         public void setDiaChi(String diaChi) {
             this.diaChi = diaChi;
+        }
+
+        public String getToaDoY() {
+            return toaDoY;
+        }
+
+        public void setToaDoY(String toaDoY) {
+            this.toaDoY = toaDoY;
+        }
+
+        public String getTenDoanhNghiep() {
+            return tenDoanhNghiep;
+        }
+
+        public void setTenDoanhNghiep(String tenDoanhNghiep) {
+            this.tenDoanhNghiep = tenDoanhNghiep;
         }
     }
 

@@ -43,11 +43,11 @@
             <TextView
                 android:layout_width="@dimen/width_title_item_docso"
                 android:layout_height="wrap_content"
-                android:text="Mã: "
+                android:text="Tên CSKD: "
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/txt_id_su_co"
+                android:id="@+id/txt_ten_cskd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -64,7 +64,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/txt_vi_tri_su_co"
+                android:id="@+id/txt_vitri_cskd"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -75,16 +75,6 @@
         android:layout_height="wrap_content"
         android:gravity="right"
         android:orientation="horizontal">
-
-        <ImageButton
-            android:id="@+id/imgBtn_viewtablethoigian"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            android:paddingRight="@dimen/padding_title_popup"
-            android:src="@drawable/ic_table"
-            android:visibility="gone" />
-
         <ImageButton
             android:id="@+id/imgBtn_ViewMoreInfo"
             android:layout_width="wrap_content"

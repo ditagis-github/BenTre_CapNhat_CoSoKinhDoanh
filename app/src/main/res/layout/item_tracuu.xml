@@ -7,31 +7,35 @@
     android:orientation="vertical"
     >
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
         <TextView
-            android:id="@+id/txt_tracuu_id"
+            android:layout_weight="4"
+            android:id="@+id/txt_tracuu_tencongty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="id"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Công ty trách nhiệm hữu hạn một thành viên"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:textStyle="bold" />
         <TextView
-            android:id="@+id/txt_tracuu_ngaycapnhat"
+            android:id="@+id/txt_tracuu_makinhdoanh"
+            android:layout_weight="1"
             android:layout_gravity="end"
-            android:text="12-03-2018"
+            android:text="1300669749"
+            android:maxLines="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             />
 
-    </FrameLayout>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/txt_tracuu_diachi"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/txt_tracuu_id"
+        android:layout_alignBottom="@+id/txt_tracuu_tencongty"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_weight="90"

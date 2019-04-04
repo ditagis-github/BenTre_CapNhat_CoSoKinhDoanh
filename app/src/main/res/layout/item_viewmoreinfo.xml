@@ -20,7 +20,7 @@
                 android:layout_width="318dp"
                 android:layout_height="30dp"
                 android:gravity="center_vertical"
-                android:text="iDDiemDanhGia"
+                android:text="maKinhDoanh"
                 android:textAppearance="?android:attr/textAppearanceMedium"
 
                 android:textStyle="bold" />
@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="20dp"
-                android:text="ngayCapNhat"
+                android:text="toaDoX"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
         </LinearLayout>
 
