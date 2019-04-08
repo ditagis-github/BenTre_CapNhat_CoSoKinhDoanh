@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import bentre.ditagis.com.capnhatthongtin.async.NewLoginAsycn;
+import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.User;
 import bentre.ditagis.com.capnhatthongtin.utities.CheckConnectInternet;
 import bentre.ditagis.com.capnhatthongtin.utities.Preference;
@@ -19,6 +20,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private TextView mTxtPassword;
     private boolean isLastLogin;
     private TextView mTxtValidation;
+    private DApplication dApplication;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +30,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Button btnLogin = (findViewById(R.id.btnLogin));
         btnLogin.setOnClickListener(this);
         findViewById(R.id.txt_login_changeAccount).setOnClickListener(this);
-
+        dApplication = (DApplication) getApplication();
         mTxtUsername = findViewById(R.id.txtUsername);
         mTxtPassword = findViewById(R.id.txtPassword);
         mTxtUsername.setText("test_cnht");
         mTxtPassword.setText("test_cnht");
-//        mTxtUsername.setText("cln");
-//        mTxtPassword.setText("ditagis@123");
         mTxtValidation = findViewById(R.id.txt_login_validation);
         create();
     }
@@ -81,8 +81,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 //        handleLoginSuccess(userName,passWord);
         final String finalUserName = userName;
         NewLoginAsycn loginAsycn = new NewLoginAsycn(this, output -> {
-            if (output != null)
+            if (output != null){
                 handleLoginSuccess(output);
+                dApplication.setUser(output);
+            }
             else
                 handleLoginFail();
         });

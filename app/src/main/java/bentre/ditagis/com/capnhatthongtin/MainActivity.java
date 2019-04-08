@@ -57,6 +57,7 @@ import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
 import com.esri.arcgisruntime.mapping.view.LocationDisplay;
@@ -90,8 +91,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Callout mCallout;
     private List<FeatureLayerDTG> mFeatureLayerDTGS;
     private MapViewHandler mMapViewHandler;
-    private static double LATITUDE = 10.3952832;//10.1809655;
-    private static double LONGTITUDE = 106.380246;// 106.4011284;
+    private static double LATITUDE = 10.1809655;//10.3952832;
+    private static double LONGTITUDE = 106.4011284;//106.380246;
     private static int LEVEL_OF_DETAIL = 12;
     private SearchView mTxtSearch;
     private ListView mListViewSearch;
@@ -114,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_quan_ly_chat_luong_nuoc);
+        setContentView(R.layout.activity_capnhat_cskd);
         setLicense();
         mApplication = (DApplication) getApplication();
         setUp();
@@ -126,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setOnClickListener();
         startGPS();
         startSignIn();
+        mApplication.setMainActivity(this);
     }
 
     private void startGPS() {
@@ -256,7 +258,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 if (mMapViewHandler != null) {
-                    double[] location = mMapViewHandler.onScroll(e1, e2, distanceX, distanceY);
+                    Point center = ((MapView) mMapView).getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
+                    double[] location = mMapViewHandler.pointToLogLat(center);
                     edit_longtitude.setText(location[0] + "");
                     edit_latitude.setText(location[1] + "");
                 }
@@ -331,10 +334,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             featureLayerDTG.setUpdateFields(getFieldsDTG(layerInfoDTG.getOutField()));
             if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.layer_cosokinhdoanh))) {
                 featureLayer.setPopupEnabled(true);
-                mMapViewHandler = new MapViewHandler(featureLayerDTG, mMapView, MainActivity.this);
+                featureLayer.loadAsync();
                 mFeatureLayerDTGS.add(featureLayerDTG);
                 mMap.getOperationalLayers().add(featureLayer);
                 mApplication.setLayer_CoSoKinhDoanhDTG(featureLayerDTG);
+                featureLayer.addDoneLoadingListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMapViewHandler = new MapViewHandler(mMapView, MainActivity.this);
+                        mApplication.setMapViewHandler(mMapViewHandler);
+                        mMapViewHandler.setPopupInfos(popupInfos);
+                    }
+                });
             }
             if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.table_cosokinhdoanh))) {
                 mApplication.setTable_CoSoKinhDoanhDTG(featureLayerDTG);
@@ -350,10 +361,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         for (ArcGISSublayer sublayer : sublayerList) {
                             addCheckBox_SubLayer((ArcGISMapImageSublayer) sublayer, mLinnearDisplayLayerBaseMap);
                             String urlSubBaseMap = layerInfoDTG.getUrl() + "/" + sublayer.getId();
-                            if (sublayer.getId() == 5) {
+                            if (sublayer.getId() == 3) {
                                 mApplication.setSft_HanhChinhXa(new ServiceFeatureTable(urlSubBaseMap));
                             }
-                            if (sublayer.getId() == 6) {
+                            if (sublayer.getId() == 7) {
                                 mApplication.setSft_HanhChinhHuyen(new ServiceFeatureTable(urlSubBaseMap));
                             }
                         }
@@ -369,8 +380,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return;
         }
         popupInfos = new Popup(MainActivity.this, mMapView, mCallout);
-
-        mMapViewHandler.setPopupInfos(popupInfos);
         mMap.addDoneLoadingListener(new Runnable() {
             @Override
             public void run() {
@@ -503,7 +512,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mTxtSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                mMapViewHandler.querySearch(query, mListViewSearch, tableCoSoKinhDoanhAdapter);
+                mMapViewHandler.querySearch(query, tableCoSoKinhDoanhAdapter);
                 return false;
             }
 
@@ -609,15 +618,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else {
                     MySnackBar.make(mMapView, "Phải chọn CSKD chưa cập nhật trước", false);
                 }
+                addFeatureClose();
                 break;
             case R.id.floatBtnAdd:
                 addFeature();
                 break;
             case R.id.btn_add_feature_close:
-                ((LinearLayout) findViewById(R.id.linear_addfeature)).setVisibility(View.GONE);
-                ((ImageView) findViewById(R.id.img_map_pin)).setVisibility(View.GONE);
-                ((FloatingActionButton) findViewById(R.id.floatBtnAdd)).setVisibility(View.VISIBLE);
-                mMapViewHandler.setClickBtnAdd(false);
+                addFeatureClose();
                 break;
             case R.id.floatBtnLocation:
                 if (!mLocationDisplay.isStarted()) mLocationDisplay.startAsync();
@@ -629,11 +636,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void addFeature() {
-        ((LinearLayout) findViewById(R.id.linear_addfeature)).setVisibility(View.VISIBLE);
-        ((ImageView) findViewById(R.id.img_map_pin)).setVisibility(View.VISIBLE);
-        ((FloatingActionButton) findViewById(R.id.floatBtnAdd)).setVisibility(View.GONE);
-        mMapViewHandler.setClickBtnAdd(true);
+    public void addFeatureClose() {
+        findViewById(R.id.linear_addfeature).setVisibility(View.GONE);
+        findViewById(R.id.img_map_pin).setVisibility(View.GONE);
+        findViewById(R.id.floatBtnAdd).setVisibility(View.VISIBLE);
+    }
+
+    public void addFeature() {
+        findViewById(R.id.linear_addfeature).setVisibility(View.VISIBLE);
+        findViewById(R.id.img_map_pin).setVisibility(View.VISIBLE);
+        findViewById(R.id.floatBtnAdd).setVisibility(View.GONE);
     }
 
     @SuppressLint("ResourceAsColor")
@@ -679,8 +691,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case Constant.REQUEST.QUERY:
                 if (resultCode == Activity.RESULT_OK) {
                     addFeature();
-                } else if (requestCode == Activity.RESULT_CANCELED) {
-                    //   todo show popup
                 }
 
                 break;

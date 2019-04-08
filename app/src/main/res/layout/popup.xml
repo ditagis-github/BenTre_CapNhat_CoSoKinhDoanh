@@ -20,7 +20,7 @@
             android:textSize="20sp" />
 
         <ImageButton
-            android:id="@+id/imgbtn_popup_diem_danh_gia_nuoc_cancel"
+            android:id="@+id/img_popup_close"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"

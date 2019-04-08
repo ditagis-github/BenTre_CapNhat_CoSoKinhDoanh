@@ -29,7 +29,7 @@
 
     </FrameLayout>
     <TextView
-        android:id="@+id/txt_tracuu_diadiem"
+        android:id="@+id/txt_tracuu_diadiem_tinh"
         android:layout_gravity="left"
         android:text="2018/04/01 - 2018/04/30"
         android:layout_width="wrap_content"

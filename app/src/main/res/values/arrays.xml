@@ -5,14 +5,8 @@
 
     <!--diemdanhgianuoc-->
 
-    <string-array name="unedit_Fields">
-        <item>OBJECTID</item>
-        <item>IDDiemDanhGia</item>
-        <item>IDMauKiemNghiem</item>
-        <item>NgayCapNhat</item>
-    </string-array>
     <string-array name="trangthai_arrays">
-        <item></item>
+        <item>Tất cả</item>
         <item>Chưa xử lý</item>
         <item>Đã xử lý</item>
     </string-array>

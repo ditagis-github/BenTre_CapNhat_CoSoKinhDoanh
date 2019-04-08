@@ -69,10 +69,10 @@ public class TableCoSoKinhDoanhAdapter extends ArrayAdapter<TableCoSoKinhDoanhAd
         TextView txt_tracuu_tencongty = (TextView) convertView.findViewById(R.id.txt_tracuu_tencongty);
         TextView txt_tracuu_makinhdoanh = (TextView) convertView.findViewById(R.id.txt_tracuu_makinhdoanh);
         TextView txt_tracuu_diachi = (TextView) convertView.findViewById(R.id.txt_tracuu_diachi);
-        txt_tracuu_tencongty.setText(item.getTenDoanhNghiep().toUpperCase());
+        txt_tracuu_tencongty.setText(item.getTenDoanhNghiep());
         txt_tracuu_makinhdoanh.setText(item.getMaKinhDoanh());
         txt_tracuu_diachi.setText(item.getDiaChi());
-        if(item.getToaDoX().equals("") || item.getToaDoX().equals("")){
+        if((item.getToaDoX() == null || item.getToaDoX().equals("")) && (item.getToaDoX() == null || item.getToaDoY().equals(""))){
             txt_tracuu_tencongty.setTypeface(Typeface.DEFAULT_BOLD);
         }
         else {

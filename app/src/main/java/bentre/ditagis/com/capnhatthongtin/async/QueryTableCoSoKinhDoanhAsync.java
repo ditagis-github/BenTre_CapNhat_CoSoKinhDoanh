@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.TraCuuActivity;
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
+import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
 /**
  * Created by ThanLe on 4/16/2018.
@@ -65,6 +66,7 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
         QueryParameters queryParameters = new QueryParameters();
         String queryClause = params[0];
         queryParameters.setWhereClause(queryClause);
+        queryParameters.setMaxFeatures(100);
         final ListenableFuture<FeatureQueryResult> queryResultListenableFuture = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         queryResultListenableFuture.addDoneListener(new Runnable() {
             @Override
@@ -77,12 +79,12 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
                         Feature feature = (Feature) iterator.next();
                         TableCoSoKinhDoanhAdapter.Item item = new TableCoSoKinhDoanhAdapter.Item();
                         Map<String, Object> attributes = feature.getAttributes();
-                        item.setObjectID(attributes.get(mContext.getString(R.string.OBJECTID)).toString());
-                        item.setMaKinhDoanh(attributes.get(mContext.getString(R.string.MaKinhDoanh)).toString());
-                        item.setTenDoanhNghiep(attributes.get(mContext.getString(R.string.TenDoanhNghiep)).toString());
-                        item.setToaDoX(attributes.get(mContext.getString(R.string.TOADOX)).toString());
-                        item.setToaDoY(attributes.get(mContext.getString(R.string.TOADOY)).toString());
-                        item.setDiaChi(attributes.get(mContext.getString(R.string.DIACHI)).toString());
+                        item.setObjectID(attributes.get(Constant.OBJECTID).toString());
+                        item.setMaKinhDoanh(attributes.get(Constant.CSKDTableFields.MaKinhDoanh).toString());
+                        item.setTenDoanhNghiep(attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
+                        item.setToaDoX(attributes.get(Constant.CSKDTableFields.X).toString());
+                        item.setToaDoY(attributes.get(Constant.CSKDTableFields.Y).toString());
+                        item.setDiaChi(attributes.get(Constant.CSKDTableFields.DiaChi).toString());
                         items.add(item);
                         features.add(feature);
                     }
@@ -105,7 +107,7 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
         tableCoSoKinhDoanhAdapter.setItems(values[0]);
         tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
         if (txtTongItem != null)
-            txtTongItem.setText(mContext.getString(R.string.nav_thong_ke_tong_diem) + values[0].size());
+            txtTongItem.setText(mContext.getString(R.string.nav_tongsoluong) + values[0].size());
         if (dialog != null && dialog.isShowing()) dialog.dismiss();
         super.onProgressUpdate(values);
 

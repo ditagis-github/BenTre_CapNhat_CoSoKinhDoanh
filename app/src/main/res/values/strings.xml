@@ -5,39 +5,15 @@
 
     <string name="app_name">Cập nhật CSKD</string>
     <string name="btn_Accept">Cập nhật</string>
-    <string name="btn_Delete">Xóa</string>
     <string name="btn_Esc">THOÁT</string>
-    <string name="title_layer">Cơ sở kinh doanh</string>
-    <string name="title_add">Thêm</string>
+    <string name="title_layer">CSKD</string>
 
-    <string name="path_saveImage">.qlsc</string>
-    <string name="attachment">attachment</string>
     <!--DeclngayCapNhatalue config begin-->
     <!--Name-->
-    <string name="name_maudanhgia">HoSo_MauDanhGia</string>
-    <string name="layer_cosokinhdoanh">cosokinhdoanhLYR</string>
+    <string name="layer_cosokinhdoanh">cskdLYR</string>
     <string name="table_cosokinhdoanh">cosochuacapnhatTBL</string>
     <!--DeclngayCapNhatalue config end-->
 
-    <!--Attribute begin-->
-    <string name="OBJECTID">OBJECTID</string>
-    <string name="MaKinhDoanh">MaKinhDoanh</string>
-    <string name="NGAY_CAP_NHAT">NgayCapNhat</string>
-    <string name="MaHuyenTP">MaHuyenTP</string>
-    <string name="MaPhuongXa">MaPhuongXa</string>
-    <string name="TOADOX">X</string>
-    <string name="TOADOY">Y</string>
-    <string name="DIACHI">DiaChi</string>
-    <!--Attribute end-->
-
-
-    <!--Attribute MauKiemNghiem Begin-->TenMau
-    <string name="IDMAUKIEMNGHIEM">IDMauKiemNghiem</string>
-    <string name="TENMAU">TenMau</string>
-    <!--Attribute MauKiemNghiem End-->
-
-    <string name="title_danhsachmaukiemnghiem">Danh sách mẫu kiểm nghiệm</string>
-    <string name="ket_qua_objectid">ket_qua_objectid</string>
 
     <!--thông báo-->
     <string name="title_search">Tìm kiếm mọi thứ...</string>
@@ -46,7 +22,7 @@
     <!--navigation-->
     <string name="nav_tra_cuu">Tra cứu</string>
     <string name="nav_log_out">Đăng xuất</string>
-    <string name="nav_thong_ke_tong_diem">Tổng số lượng: </string>
+    <string name="nav_tongsoluong">Tổng số lượng: </string>
 
     <!--async-->
     <string name="async_dang_xu_ly">Đang xử lý...</string>
@@ -59,15 +35,9 @@
 
 
     <!--display process status -->
-    <string name="DATA_SUCCESSFULLY_INSERTED">Thêm dữ liệu thành công</string>
-    <string name="FAILED_TO_INSERT_DATA">Thêm dữ liệu không thành công</string>
-    <string name="DATA_SUCCESSFULLY_DELETED">Xóa dữ liệu thành công </string>
-    <string name="DATA_SUCCESSFULLY_UPDATED">Cập nhật dữ liệu thành công </string>    <string name="FAILED_TO_DELETE_DATA">Xóa dữ liệu không thành công</string>
 
-    <string name="FAILED_TO_UPDATE_DATA">Cập nhật dữ liệu không thành công</string>
-    <string name="INCORRECT_INPUT_FORMAT">Số liệu nhập vào không đúng định dạng!!!</string>
     <string name="name_nhanvien">Nhân viên A</string>
-    <string name="gmail_nhanvien">nva.tanhoa@gmail.com</string>
+    <string name="gmail_nhanvien">nva.bentre@gmail.com</string>
 
     <!--preference begin-->
     <string name="preference_username">username</string>
@@ -106,10 +76,15 @@
     <string name="input_format_incorrect">Số liệu nhập vào không đúng định dạng!!!</string>
     <string name="question_delete_point">Bạn có chắc chắn xóa điểm này?</string>
     <string name="no_access_permissions">Tài khoản không có quyền truy cập ứng dụng!!!</string>
-    <string name="spin_prompt" />
-    <string name="TenDoanhNghiep">TenDoanhNghiep</string>
     <string name="TT_ChuaXuLi">Chưa xử lý</string>
-    <string name="TT_DaXuLi">Đã xử lý</string>
+    <string name="data_not_found">Không tìm thấy dữ liệu</string>
+    <string name="data_cant_add">Không thêm được dữ liệu</string>
+    <string name="error_occurred_notify">Đã xảy ra lỗi</string>
+    <string name="processing">Đang xử lý...</string>
+    <string name="all_value">Tất cả</string>
+    <string name="all_district">Toàn huyện, thành phố</string>
+    <string name="value_is_null">Không có giá trị</string>
+    <string name="whole_province">Toàn tỉnh Bến Tre</string>
 
 
 </resources>

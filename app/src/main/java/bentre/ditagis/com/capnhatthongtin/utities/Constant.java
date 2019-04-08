@@ -22,16 +22,20 @@ public class Constant {
         public static final int PERMISS = 2;
         public static final int CAMERA = 3;
     }
-
+    public static class HanhChinhFields {
+        public static final String tenxa = "tenxa";
+        public static final String maxa = "maxa";
+        public static final String tenhuyen = "tenhuyen";
+        public static final String mahuyen = "mahuyen";
+    }
     public static class CSKDLayerFields {
-        public static final String MaCSKD = "MaCSKD";
+        public static final String MaKinhDoanh = "MaKinhDoanh";
         public static final String MaPhuongXa = "MaPhuongXa";
         public static final String MaHuyenTP = "MaHuyenTP";
-        public static final String TenCSKD = "TenCSKD";
+        public static final String TenDoanhNghiep = "TenDoanhNghiep";
         public static final String DiaChi = "DiaChi";
-        public static final String ChuSoHuu = "ChuSoHuu";
-        public static final String NguoiDaiDien = "NguoiDaiDien";
-        public static final String SoDienThoai = "SoDienThoai";
+        public static final String DienThoai = "DienThoai";
+        public static final String GhiChu = "GhiChu";
     }
 
     public static class CSKDTableFields {
@@ -40,9 +44,9 @@ public class Constant {
         public static final String MaHuyenTP = "MaHuyenTP";
         public static final String TenDoanhNghiep = "TenDoanhNghiep";
         public static final String DiaChi = "DiaChi";
-        public static final String ChuSoHuu = "ChuSoHuu";
-        public static final String NguoiDaiDien = "NguoiDaiDien";
         public static final String DienThoai = "DienThoai";
+        public static final String X = "X";
+        public static final String Y = "Y";
     }
 
     public static class API_URL {

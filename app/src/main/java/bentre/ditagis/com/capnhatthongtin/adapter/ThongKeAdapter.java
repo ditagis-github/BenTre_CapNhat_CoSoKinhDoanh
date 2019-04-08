@@ -36,7 +36,7 @@ public class ThongKeAdapter extends ArrayAdapter<ThongKeAdapter.Item> {
         TextView txt_thongke_mota = (TextView) convertView.findViewById(R.id.txt_tracuu_trangthai);
         //todo
         txt_thongke_mota.setText(item.getMota());
-        TextView txt_thongke_thoigian = (TextView) convertView.findViewById(R.id.txt_tracuu_diadiem);
+        TextView txt_thongke_thoigian = (TextView) convertView.findViewById(R.id.txt_tracuu_diadiem_tinh);
         //todo
         if(item.getThoigianhienthi() != null) {
             txt_thongke_thoigian.setText(item.getThoigianhienthi());

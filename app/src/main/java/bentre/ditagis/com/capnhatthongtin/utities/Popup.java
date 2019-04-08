@@ -28,12 +28,14 @@ import com.esri.arcgisruntime.data.ArcGISFeature;
 import com.esri.arcgisruntime.data.CodedValue;
 import com.esri.arcgisruntime.data.CodedValueDomain;
 import com.esri.arcgisruntime.data.Domain;
+import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureEditResult;
+import com.esri.arcgisruntime.data.FeatureQueryResult;
 import com.esri.arcgisruntime.data.FeatureType;
 import com.esri.arcgisruntime.data.Field;
+import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Envelope;
-import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.view.Callout;
@@ -54,16 +56,15 @@ import bentre.ditagis.com.capnhatthongtin.async.NotifyDataSetChangeAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.libs.FeatureLayerDTG;
 
-public class Popup extends AppCompatActivity implements View.OnClickListener {
+public class Popup extends AppCompatActivity {
     private MainActivity mainActivity;
     private ArcGISFeature mSelectedArcGISFeature = null;
     private ServiceFeatureTable layer_CoSoKinhDoanh;
     private Callout mCallout;
-    private FeatureLayerDTG mFeatureLayerDTG;
+    private FeatureLayerDTG featureLayerDTG;
     private List<String> lstFeatureType;
     private LinearLayout linearLayout;
     private MapView mMapView;
-    private FeatureLayerDTG table_CoSoKinhDoanhDTG;
     private static double DELTA_MOVE_Y = 0;//7000;
     private DApplication mDApplication;
 
@@ -73,34 +74,11 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         this.layer_CoSoKinhDoanh = (ServiceFeatureTable) this.mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
         this.mCallout = callout;
         this.mMapView = mMapView;
-        this.table_CoSoKinhDoanhDTG = this.mDApplication.getTable_CoSoKinhDoanhDTG();
-    }
-
-
-    public ServiceFeatureTable getServiceFeatureTable(List<FeatureLayerDTG> layerDTGS, String id) {
-        for (FeatureLayerDTG layerDTG : layerDTGS) {
-            if (layerDTG.getFeatureLayer().getId().equals(id)) {
-                return (ServiceFeatureTable) layerDTG.getFeatureLayer().getFeatureTable();
-            }
-        }
-        return null;
-    }
-
-    public FeatureLayerDTG getFeatureLayerDTG(List<FeatureLayerDTG> layerDTGS, String id) {
-        for (FeatureLayerDTG layerDTG : layerDTGS) {
-            if (layerDTG.getFeatureLayer().getId().equals(id)) {
-                return layerDTG;
-            }
-        }
-        return null;
+        featureLayerDTG = mDApplication.getLayer_CoSoKinhDoanhDTG();
     }
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    public void setFeatureLayerDTG(FeatureLayerDTG layerDTG) {
-        this.mFeatureLayerDTG = layerDTG;
     }
 
     private void refressPopup() {
@@ -108,7 +86,7 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attributes.get(field.getName());
             switch (field.getName()) {
-                case Constant.CSKDLayerFields.TenCSKD:
+                case Constant.CSKDLayerFields.TenDoanhNghiep:
                     if (value != null)
                         ((TextView) linearLayout.findViewById(R.id.txt_ten_cskd)).setText(value.toString());
                     break;
@@ -121,7 +99,7 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
     }
 
     public void dimissCallout() {
-        FeatureLayer featureLayer = mFeatureLayerDTG.getFeatureLayer();
+        FeatureLayer featureLayer = featureLayerDTG.getFeatureLayer();
         featureLayer.clearSelection();
         if (mCallout != null && mCallout.isShowing()) {
             mCallout.dismiss();
@@ -131,22 +109,23 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
     public LinearLayout showPopup(final ArcGISFeature mSelectedArcGISFeature) {
         dimissCallout();
         this.mSelectedArcGISFeature = mSelectedArcGISFeature;
-        FeatureLayer featureLayer = mFeatureLayerDTG.getFeatureLayer();
+        FeatureLayer featureLayer = featureLayerDTG.getFeatureLayer();
         featureLayer.selectFeature(mSelectedArcGISFeature);
         lstFeatureType = new ArrayList<>();
         for (int i = 0; i < mSelectedArcGISFeature.getFeatureTable().getFeatureTypes().size(); i++) {
             lstFeatureType.add(mSelectedArcGISFeature.getFeatureTable().getFeatureTypes().get(i).getName());
         }
         LayoutInflater inflater = LayoutInflater.from(this.mainActivity.getApplicationContext());
-        linearLayout = (LinearLayout) inflater.inflate(R.layout.popup_diemdanhgianuoc, null);
-        linearLayout.findViewById(R.id.imgbtn_popup_diem_danh_gia_nuoc_cancel)
+        linearLayout = (LinearLayout) inflater.inflate(R.layout.popup, null);
+        linearLayout.findViewById(R.id.img_popup_close)
                 .setOnClickListener(view -> {
                     if (mCallout != null && mCallout.isShowing()) mCallout.dismiss();
+                    featureLayer.clearSelection();
                 });
         refressPopup();
 
 
-        if (mFeatureLayerDTG.getAction().isEdit()) {
+        if (featureLayerDTG.getAction().isEdit()) {
             ImageButton imgBtn_ViewMoreInfo = (ImageButton) linearLayout.findViewById(R.id.imgBtn_ViewMoreInfo);
             imgBtn_ViewMoreInfo.setVisibility(View.VISIBLE);
             imgBtn_ViewMoreInfo.setOnClickListener(new View.OnClickListener() {
@@ -156,7 +135,7 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
                 }
             });
         }
-        if (mFeatureLayerDTG.getAction().isDelete()) {
+        if (featureLayerDTG.getAction().isDelete()) {
             ImageButton imgBtn_delete = (ImageButton) linearLayout.findViewById(R.id.imgBtn_delete);
             imgBtn_delete.setVisibility(View.VISIBLE);
             imgBtn_delete.setOnClickListener(new View.OnClickListener() {
@@ -169,8 +148,7 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         }
         linearLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         Envelope envelope = mSelectedArcGISFeature.getGeometry().getExtent();
-        Envelope envelope1 = new Envelope(new Point(envelope.getXMin(), envelope.getYMin() + DELTA_MOVE_Y), new Point(envelope.getXMax(), envelope.getYMax() + DELTA_MOVE_Y));
-        mMapView.setViewpointGeometryAsync(envelope1, 0);
+        mMapView.setViewpointGeometryAsync(envelope, 0);
         // show CallOut
         mCallout.setLocation(envelope.getCenter());
         mCallout.setContent(linearLayout);
@@ -198,11 +176,11 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
                 edit(parent, view, position, id);
             }
         });
-        String[] updateFields = mFeatureLayerDTG.getUpdateFields();
+        String[] updateFields = featureLayerDTG.getUpdateFields();
         String typeIdField = mSelectedArcGISFeature.getFeatureTable().getTypeIdField();
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attr.get(field.getName());
-            if (field.getName().equals(Constant.CSKDLayerFields.TenCSKD)) {
+            if (field.getName().equals(Constant.CSKDLayerFields.TenDoanhNghiep)) {
                 if (value != null)
                     ((TextView) layout.findViewById(R.id.txt_ten_cskd)).setText(value.toString());
             } else {
@@ -436,6 +414,31 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
 
     }
 
+    public void getSelectedFeature(String maKinhDoanh) {
+        mDApplication.setSelectedFeatureTBL(null);
+        final QueryParameters queryParameters = new QueryParameters();
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("%s = '%s'", Constant.CSKDTableFields.MaKinhDoanh, maKinhDoanh));
+        queryParameters.setWhereClause(builder.toString());
+        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
+        feature.addDoneListener(() -> {
+            try {
+                FeatureQueryResult result = feature.get();
+                if (result.iterator().hasNext()) {
+                    Feature item = result.iterator().next();
+                    mDApplication.setSelectedFeatureTBL(item);
+                    mDApplication.getMapViewHandler().updateCSKDTable(null);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+
+    }
+
     private void deleteFeature() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity, android.R.style.Theme_Material_Light_Dialog_Alert);
         builder.setTitle("Xác nhận");
@@ -445,7 +448,10 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
                 mSelectedArcGISFeature.loadAsync();
-
+                Object maKinhDoanh = mSelectedArcGISFeature.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
+                if(maKinhDoanh != null){
+                    getSelectedFeature(maKinhDoanh.toString());
+                }
                 // update the selected feature
                 mSelectedArcGISFeature.addDoneLoadingListener(new Runnable() {
                     @Override
@@ -468,9 +474,6 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
                                             try {
                                                 edits = serverResult.get();
                                                 if (edits.size() > 0) {
-                                                    if (!edits.get(0).hasCompletedWithErrors()) {
-                                                        Log.e("", "Feature successfully updated");
-                                                    }
                                                 }
                                             } catch (InterruptedException e) {
                                                 e.printStackTrace();
@@ -501,15 +504,5 @@ public class Popup extends AppCompatActivity implements View.OnClickListener {
         dialog.show();
 
 
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btnAdd:
-//            @Override
-//
-                break;
-        }
     }
 }

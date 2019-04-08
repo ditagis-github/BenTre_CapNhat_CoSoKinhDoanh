@@ -37,7 +37,7 @@ public class TraCuuActivity extends AppCompatActivity {
     private TextView txtTongItem;
     private ServiceFeatureTable serviceFeatureTable;
     private DApplication mDApplication;
-    TextView diaDiem, trangThai;
+    TextView diaDiemTinh, diaDiemHuyen, trangThai;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +47,8 @@ public class TraCuuActivity extends AppCompatActivity {
         serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
         this.txtTongItem = this.findViewById(R.id.txtTongItem);
         ((LinearLayout) TraCuuActivity.this.findViewById(R.id.layout_tracuu)).setOnClickListener(v -> showQueryDialog());
-        diaDiem = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem);
+        diaDiemTinh = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_tinh);
+        diaDiemHuyen = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_huyen);
         trangThai = TraCuuActivity.this.findViewById(R.id.txt_tracuu_trangthai);
         ParameterQuery parameterQuery = new ParameterQuery();
         parameterQuery.setTrangThai(getString(R.string.TT_ChuaXuLi));
@@ -65,8 +66,9 @@ public class TraCuuActivity extends AppCompatActivity {
         ArrayList<String> phuongXaCodes = new ArrayList<>();
         ArrayList<String> huyenTPCodes = new ArrayList<>();
         HashMap<String, String> hashMapHuyenTP = mDApplication.getHashMapHuyenTP();
-        ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList = mDApplication.getHanhChinhXaList();
-        huyenTPCodes.add("");
+        huyenTPCodes.add(getString(R.string.whole_province));
+        huyenTPCodes.add(getString(R.string.value_is_null));
+
         for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
             String value = entry.getValue();
             huyenTPCodes.add(value);
@@ -82,14 +84,18 @@ public class TraCuuActivity extends AppCompatActivity {
                 Object itemAtPosition = spinnerHuyenTP.getItemAtPosition(position);
                 String tenHuyenTP = itemAtPosition.toString();
                 adapterPhuongXa.clear();
-                adapterPhuongXa.add("");
                 for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
                     String value = entry.getValue();
                     String code = entry.getKey();
                     if (value.equals(tenHuyenTP)) {
-                        for (MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa : hanhChinhXaList) {
-                            if (code.equals(hanhChinhXa.getMaHuyenTP())) {
-                                adapterPhuongXa.add(hanhChinhXa.getTenPhuongXa());
+                        adapterPhuongXa.add(getString(R.string.all_district));
+                        adapterPhuongXa.add(getString(R.string.value_is_null));
+                        ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList = mDApplication.getHanhChinhXaList();
+                        if(hanhChinhXaList != null){
+                            for (MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa : hanhChinhXaList) {
+                                if (code.equals(hanhChinhXa.getMaHuyenTP())) {
+                                    adapterPhuongXa.add(hanhChinhXa.getTenPhuongXa());
+                                }
                             }
                         }
                         break;
@@ -114,22 +120,26 @@ public class TraCuuActivity extends AppCompatActivity {
                 Object trangThaiSelectedItem = spinnerTrangThai.getSelectedItem();
                 ParameterQuery parameterQuery = new ParameterQuery();
                 MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = new MapViewAddDoneLoadingListener.HanhChinhXa();
-                if (phuongXaSelectedItem.toString() != "" && phuongXaSelectedItem != null) {
-                    hanhChinhXa = getMaHanhChinh(phuongXaSelectedItem.toString());
-                    diaDiem.setText(phuongXaSelectedItem.toString() + " - " + huyenTPSelectedItem.toString());
-                } else if (huyenTPSelectedItem != "" && huyenTPSelectedItem != null) {
+                if (phuongXaSelectedItem != null) {
+                    MapViewAddDoneLoadingListener.HanhChinhXa maHanhChinh = getMaHanhChinh(phuongXaSelectedItem.toString());
+                    if(maHanhChinh != null){
+                        hanhChinhXa = maHanhChinh;
+                    }
+                    hanhChinhXa.setSelectValuePhuongXa(phuongXaSelectedItem.toString());
+                    diaDiemHuyen.setText(phuongXaSelectedItem.toString());
+                }
+                if (huyenTPSelectedItem != null) {
+                    hanhChinhXa.setSelectValueHuyenTP(huyenTPSelectedItem.toString());
                     String maHuyenTP = getMaHuyenTP(huyenTPSelectedItem.toString());
-                    hanhChinhXa.setMaHuyenTP(maHuyenTP);
-                    diaDiem.setText(" * - " + huyenTPSelectedItem.toString());
-                } else {
-                    diaDiem.setText("Toàn tỉnh Bến Tre");
+                    if (maHuyenTP != null){
+                        hanhChinhXa.setMaHuyenTP(maHuyenTP);
+                    }
+                    diaDiemTinh.setText(huyenTPSelectedItem.toString());
                 }
                 parameterQuery.setHanhChinhXa(hanhChinhXa);
-                if (trangThaiSelectedItem.toString() != "" && trangThaiSelectedItem != null) {
+                if (trangThaiSelectedItem != null) {
                     parameterQuery.setTrangThai(trangThaiSelectedItem.toString());
                     trangThai.setText(trangThaiSelectedItem.toString());
-                } else {
-                    trangThai.setText("Tất cả");
                 }
                 if (selectQueryDialog.isShowing()) {
                     queryFeatures(parameterQuery);
@@ -171,45 +181,49 @@ public class TraCuuActivity extends AppCompatActivity {
         if (parameterQuery != null) {
             MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = parameterQuery.getHanhChinhXa();
             if (hanhChinhXa != null) {
-                if (hanhChinhXa.getMaPhuongXa() != null) {
-                    builder.append(String.format("%s = %s", getString(R.string.MaPhuongXa), hanhChinhXa.getMaPhuongXa()));
+                if (hanhChinhXa.getSelectValueHuyenTP().equals(getString(R.string.value_is_null))) {
+                    builder.append(String.format("%s is null", Constant.CSKDTableFields.MaHuyenTP));
                     builder.append(" and ");
                 } else if (hanhChinhXa.getMaHuyenTP() != null) {
-                    builder.append(String.format("%s = %s", getString(R.string.MaHuyenTP), hanhChinhXa.getMaHuyenTP()));
+                    builder.append(String.format("%s = %s", Constant.CSKDTableFields.MaHuyenTP, hanhChinhXa.getMaHuyenTP()));
                     builder.append(" and ");
+                }
+                if (hanhChinhXa.getSelectValuePhuongXa() != null) {
+                    if (hanhChinhXa.getSelectValuePhuongXa().equals(getString(R.string.value_is_null))) {
+                        builder.append(String.format("%s is null", Constant.CSKDTableFields.MaPhuongXa));
+                        builder.append(" and ");
+                    } else if (hanhChinhXa.getMaPhuongXa() != null) {
+                        builder.append(String.format("%s = %s", Constant.CSKDTableFields.MaPhuongXa, hanhChinhXa.getMaPhuongXa()));
+                        builder.append(" and ");
+                    }
                 }
             }
             if (parameterQuery.getTrangThai().equals(getString(R.string.TT_ChuaXuLi))) {
-                builder.append(String.format("%s = ''", getString(R.string.TOADOX)));
+                builder.append(String.format("%s = ''", Constant.CSKDTableFields.X));
                 builder.append(" or ");
-                builder.append(String.format("%s = ''", getString(R.string.TOADOY)));
+                builder.append(String.format("%s = ''", Constant.CSKDTableFields.Y));
                 builder.append(" and ");
             } else if (parameterQuery.getTrangThai().equals("Đã xử lý")) {
-                builder.append(String.format("%s <> ''", getString(R.string.TOADOX)));
+                builder.append(String.format("%s <> ''", Constant.CSKDTableFields.X));
                 builder.append(" and ");
-                builder.append(String.format("%s <> ''", getString(R.string.TOADOY)));
+                builder.append(String.format("%s <> ''", Constant.CSKDTableFields.Y));
                 builder.append(" and ");
             }
         }
         builder.append(" 1 = 1 ");
         queryParameters.setWhereClause(builder.toString());
-        ListView listView = (ListView) findViewById(R.id.listview);
+        ListView listView = findViewById(R.id.listview);
         final List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
         final TableCoSoKinhDoanhAdapter adapter = new TableCoSoKinhDoanhAdapter(this, items);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, final long id) {
-                Intent intent = new Intent();
-                TableCoSoKinhDoanhAdapter.Item item = adapter.getItems().get(position);
-                getSelectedFeature(item.getObjectID());
-                if (item.getToaDoX().equals("") || item.getToaDoX().equals("")) {
-                    setResult(Activity.RESULT_OK, intent);
-                } else {
-                    setResult(Activity.RESULT_CANCELED, intent);
-                }
-                finish();
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Intent intent = new Intent();
+            TableCoSoKinhDoanhAdapter.Item item = adapter.getItems().get(position);
+            getSelectedFeature(item.getObjectID());
+            if (item.getToaDoX().equals("") || item.getToaDoY().equals("")) {
+                setResult(Activity.RESULT_OK, intent);
             }
+            finish();
         });
         new QueryTableCoSoKinhDoanhAsync(this, serviceFeatureTable, txtTongItem, adapter, features -> {
         }).execute(builder.toString());
@@ -221,20 +235,22 @@ public class TraCuuActivity extends AppCompatActivity {
         final String query = "OBJECTID = " + objectID;
         queryParameters.setWhereClause(query);
         final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
-        feature.addDoneListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    FeatureQueryResult result = feature.get();
-                    if (result.iterator().hasNext()) {
-                        Feature item = result.iterator().next();
-                        mDApplication.setSelectedFeatureTBL(item);
+        feature.addDoneListener(() -> {
+            try {
+                FeatureQueryResult result = feature.get();
+                if (result.iterator().hasNext()) {
+                    Feature item = result.iterator().next();
+                    mDApplication.setSelectedFeatureTBL(item);
+                    Object maKinhDoanh = item.getAttributes().get(Constant.CSKDTableFields.MaKinhDoanh);
+                    if (maKinhDoanh != null) {
+                        mDApplication.getMapViewHandler().queryByMaKinhDoanh(maKinhDoanh.toString());
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
         });
 

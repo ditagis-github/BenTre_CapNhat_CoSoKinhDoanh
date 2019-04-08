@@ -24,7 +24,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_quan_ly_su_co" />
+    <include layout="@layout/content_quan_ly" />
 
     <LinearLayout
         android:id="@+id/layout_layer"
