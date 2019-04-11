@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
+import bentre.ditagis.com.capnhatthongtin.TraCuuActivity;
 import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.User;
 import bentre.ditagis.com.capnhatthongtin.libs.FeatureLayerDTG;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
+import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
 
 public class DApplication extends Application {
@@ -99,7 +101,16 @@ public class DApplication extends Application {
     public void setSelectedFeatureTBL(Feature selectedFeatureTBL) {
         this.selectedFeatureTBL = selectedFeatureTBL;
     }
+    // selected feature CSKD layer
+    private Feature selectedFeatureLYR;
 
+    public Feature getSelectedFeatureLYR() {
+        return selectedFeatureLYR;
+    }
+
+    public void setSelectedFeatureLYR(Feature selectedFeatureLYR) {
+        this.selectedFeatureLYR = selectedFeatureLYR;
+    }
     // set Mapview handle
     private MapViewHandler mapViewHandler;
 
@@ -120,4 +131,26 @@ public class DApplication extends Application {
     public void setMainActivity(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
     }
+
+    // save last query
+    private TraCuuActivity.ParameterQuery parameterQuery;
+
+    public TraCuuActivity.ParameterQuery getParameterQuery() {
+        return parameterQuery;
+    }
+
+    public void setParameterQuery(TraCuuActivity.ParameterQuery parameterQuery) {
+        this.parameterQuery = parameterQuery;
+    }
+    // TYPE SEARCH
+    private String typeSearch = Constant.TYPE_SEARCH.LAYER;
+
+    public String getTypeSearch() {
+        return typeSearch;
+    }
+
+    public void setTypeSearch(String typeSearch) {
+        this.typeSearch = typeSearch;
+    }
+
 }

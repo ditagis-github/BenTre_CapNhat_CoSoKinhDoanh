@@ -85,6 +85,7 @@
     <string name="all_district">Toàn huyện, thành phố</string>
     <string name="value_is_null">Không có giá trị</string>
     <string name="whole_province">Toàn tỉnh Bến Tre</string>
+    <string name="message_no_geocoder_available">Cần cập nhật phiên bản Google+ mới nhất để dùng tính năng này</string>
 
 
 </resources>

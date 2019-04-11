@@ -10,9 +10,9 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
@@ -37,7 +37,8 @@ public class TraCuuActivity extends AppCompatActivity {
     private TextView txtTongItem;
     private ServiceFeatureTable serviceFeatureTable;
     private DApplication mDApplication;
-    TextView diaDiemTinh, diaDiemHuyen, trangThai;
+    TextView diaDiemHuyen, diaDiemXa, trangThai;
+    private ParameterQuery parameterQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,13 +47,18 @@ public class TraCuuActivity extends AppCompatActivity {
         mDApplication = (DApplication) getApplication();
         serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
         this.txtTongItem = this.findViewById(R.id.txtTongItem);
-        ((LinearLayout) TraCuuActivity.this.findViewById(R.id.layout_tracuu)).setOnClickListener(v -> showQueryDialog());
-        diaDiemTinh = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_tinh);
+        TraCuuActivity.this.findViewById(R.id.layout_tracuu).setOnClickListener(v -> showQueryDialog());
         diaDiemHuyen = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_huyen);
+        diaDiemXa = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_xa);
         trangThai = TraCuuActivity.this.findViewById(R.id.txt_tracuu_trangthai);
-        ParameterQuery parameterQuery = new ParameterQuery();
-        parameterQuery.setTrangThai(getString(R.string.TT_ChuaXuLi));
-        queryFeatures(parameterQuery);
+        if(mDApplication.getParameterQuery() != null){
+            parameterQuery = mDApplication.getParameterQuery();
+        }
+        else {
+            parameterQuery = new ParameterQuery();
+            parameterQuery.setTrangThai(getString(R.string.TT_ChuaXuLi));
+        }
+        queryFeatures();
     }
 
     private void showQueryDialog() {
@@ -68,7 +74,6 @@ public class TraCuuActivity extends AppCompatActivity {
         HashMap<String, String> hashMapHuyenTP = mDApplication.getHashMapHuyenTP();
         huyenTPCodes.add(getString(R.string.whole_province));
         huyenTPCodes.add(getString(R.string.value_is_null));
-
         for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
             String value = entry.getValue();
             huyenTPCodes.add(value);
@@ -101,6 +106,12 @@ public class TraCuuActivity extends AppCompatActivity {
                         break;
                     }
                 }
+                if(parameterQuery.getHanhChinhXa() != null){
+                    String selectValuePhuongXa = parameterQuery.getHanhChinhXa().getSelectValuePhuongXa();
+                    if(selectValuePhuongXa != null){
+                        spinnerPhuongXa.setSelection(adapterPhuongXa.getPosition(selectValuePhuongXa));
+                    }
+                }
                 adapterPhuongXa.notifyDataSetChanged();
             }
 
@@ -118,7 +129,6 @@ public class TraCuuActivity extends AppCompatActivity {
                 Object huyenTPSelectedItem = spinnerHuyenTP.getSelectedItem();
                 Object phuongXaSelectedItem = spinnerPhuongXa.getSelectedItem();
                 Object trangThaiSelectedItem = spinnerTrangThai.getSelectedItem();
-                ParameterQuery parameterQuery = new ParameterQuery();
                 MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = new MapViewAddDoneLoadingListener.HanhChinhXa();
                 if (phuongXaSelectedItem != null) {
                     MapViewAddDoneLoadingListener.HanhChinhXa maHanhChinh = getMaHanhChinh(phuongXaSelectedItem.toString());
@@ -126,7 +136,6 @@ public class TraCuuActivity extends AppCompatActivity {
                         hanhChinhXa = maHanhChinh;
                     }
                     hanhChinhXa.setSelectValuePhuongXa(phuongXaSelectedItem.toString());
-                    diaDiemHuyen.setText(phuongXaSelectedItem.toString());
                 }
                 if (huyenTPSelectedItem != null) {
                     hanhChinhXa.setSelectValueHuyenTP(huyenTPSelectedItem.toString());
@@ -134,25 +143,38 @@ public class TraCuuActivity extends AppCompatActivity {
                     if (maHuyenTP != null){
                         hanhChinhXa.setMaHuyenTP(maHuyenTP);
                     }
-                    diaDiemTinh.setText(huyenTPSelectedItem.toString());
                 }
                 parameterQuery.setHanhChinhXa(hanhChinhXa);
                 if (trangThaiSelectedItem != null) {
                     parameterQuery.setTrangThai(trangThaiSelectedItem.toString());
-                    trangThai.setText(trangThaiSelectedItem.toString());
                 }
                 if (selectQueryDialog.isShowing()) {
-                    queryFeatures(parameterQuery);
+                    queryFeatures();
                 }
                 selectQueryDialog.dismiss();
 
 
             }
         });
-
-
+        if(parameterQuery != null){
+            String trangThai = parameterQuery.getTrangThai();
+            if(trangThai != null){
+                SpinnerAdapter adapter = spinnerTrangThai.getAdapter();
+                for(int i = 0; i < adapter.getCount();i++){
+                    if(adapter.getItem(i).toString().equals(trangThai)){
+                        spinnerTrangThai.setSelection(i);
+                        break;
+                    }
+                }
+            }
+            if(parameterQuery.getHanhChinhXa() != null){
+                String selectValueHuyenTP = parameterQuery.getHanhChinhXa().getSelectValueHuyenTP();
+                if(selectValueHuyenTP != null){
+                    spinnerHuyenTP.setSelection(huyenTPCodes.indexOf(selectValueHuyenTP));
+                }
+            }
+        }
     }
-
     private String getMaHuyenTP(String tenHuyenTP) {
         HashMap<String, String> hashMapHuyenTP = mDApplication.getHashMapHuyenTP();
         for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
@@ -175,12 +197,14 @@ public class TraCuuActivity extends AppCompatActivity {
         return null;
     }
 
-    private void queryFeatures(ParameterQuery parameterQuery) {
+    private void queryFeatures() {
+        mDApplication.setParameterQuery(parameterQuery);
         StringBuilder builder = new StringBuilder();
         QueryParameters queryParameters = new QueryParameters();
         if (parameterQuery != null) {
             MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = parameterQuery.getHanhChinhXa();
             if (hanhChinhXa != null) {
+                diaDiemHuyen.setText(hanhChinhXa.getSelectValueHuyenTP());
                 if (hanhChinhXa.getSelectValueHuyenTP().equals(getString(R.string.value_is_null))) {
                     builder.append(String.format("%s is null", Constant.CSKDTableFields.MaHuyenTP));
                     builder.append(" and ");
@@ -189,6 +213,7 @@ public class TraCuuActivity extends AppCompatActivity {
                     builder.append(" and ");
                 }
                 if (hanhChinhXa.getSelectValuePhuongXa() != null) {
+                    diaDiemXa.setText(hanhChinhXa.getSelectValuePhuongXa());
                     if (hanhChinhXa.getSelectValuePhuongXa().equals(getString(R.string.value_is_null))) {
                         builder.append(String.format("%s is null", Constant.CSKDTableFields.MaPhuongXa));
                         builder.append(" and ");
@@ -199,9 +224,7 @@ public class TraCuuActivity extends AppCompatActivity {
                 }
             }
             if (parameterQuery.getTrangThai().equals(getString(R.string.TT_ChuaXuLi))) {
-                builder.append(String.format("%s = ''", Constant.CSKDTableFields.X));
-                builder.append(" or ");
-                builder.append(String.format("%s = ''", Constant.CSKDTableFields.Y));
+                builder.append("(X = '' or Y = '')");
                 builder.append(" and ");
             } else if (parameterQuery.getTrangThai().equals("Đã xử lý")) {
                 builder.append(String.format("%s <> ''", Constant.CSKDTableFields.X));
@@ -209,6 +232,7 @@ public class TraCuuActivity extends AppCompatActivity {
                 builder.append(String.format("%s <> ''", Constant.CSKDTableFields.Y));
                 builder.append(" and ");
             }
+            trangThai.setText(parameterQuery.getTrangThai());
         }
         builder.append(" 1 = 1 ");
         queryParameters.setWhereClause(builder.toString());

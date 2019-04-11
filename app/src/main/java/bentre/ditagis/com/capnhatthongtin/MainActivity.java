@@ -3,9 +3,11 @@ package bentre.ditagis.com.capnhatthongtin;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,7 +34,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -60,16 +61,21 @@ import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.util.ListenableList;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import bentre.ditagis.com.capnhatthongtin.adapter.DiaChiAdapter;
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
 import bentre.ditagis.com.capnhatthongtin.async.PreparingAsycn;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
+import bentre.ditagis.com.capnhatthongtin.entities.DAddress;
 import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.LayerInfoDTG;
 import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.ListObjectDB;
 import bentre.ditagis.com.capnhatthongtin.libs.Action;
@@ -94,9 +100,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static double LATITUDE = 10.1809655;//10.3952832;
     private static double LONGTITUDE = 106.4011284;//106.380246;
     private static int LEVEL_OF_DETAIL = 12;
-    private SearchView mTxtSearch;
-    private ListView mListViewSearch;
-    private TableCoSoKinhDoanhAdapter tableCoSoKinhDoanhAdapter;
+    private SearchView mSearchView;
+    private TableCoSoKinhDoanhAdapter coSoKinhDoanhAdapter;
+    private DiaChiAdapter diaChiAdapter;
     private ArcGISMapImageLayer hanhChinhImageLayers;
     private LinearLayout mLinnearDisplayLayerBaseMap;
     private FloatingActionButton mFloatButtonLayer, mFloatButtonLocation;
@@ -109,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private LocationHelper mLocationHelper;
     private Location mLocation;
     private DApplication mApplication;
+    private GraphicsOverlay graphicsOverlay;
 
     @SuppressLint("ClickableViewAccessibility")
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -190,23 +197,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         findViewById(R.id.img_layvitri).setOnClickListener(this);
         findViewById(R.id.floatBtnLocation).setOnClickListener(this);
         findViewById(R.id.floatBtnHome).setOnClickListener(this);
+        findViewById(R.id.layout_tim_cskd).setOnClickListener(this);
+        findViewById(R.id.layout_tim_dia_chi).setOnClickListener(this);
     }
 
     private void initListViewSearch() {
-        this.mListViewSearch = findViewById(R.id.lstview_search);
+        ListView listViewSearchLayer = findViewById(R.id.lstview_search_layer);
         //đưa listview search ra phía sau
-        this.mListViewSearch.invalidate();
+        listViewSearchLayer.invalidate();
         List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
-        this.tableCoSoKinhDoanhAdapter = new TableCoSoKinhDoanhAdapter(MainActivity.this, items);
-        this.mListViewSearch.setAdapter(tableCoSoKinhDoanhAdapter);
-        this.mListViewSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String objectID = ((TableCoSoKinhDoanhAdapter.Item) parent.getItemAtPosition(position)).getObjectID();
-                mMapViewHandler.queryByObjectID(objectID);
-                tableCoSoKinhDoanhAdapter.clear();
-                tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
-            }
+        this.coSoKinhDoanhAdapter = new TableCoSoKinhDoanhAdapter(MainActivity.this, items);
+        listViewSearchLayer.setAdapter(coSoKinhDoanhAdapter);
+        listViewSearchLayer.setOnItemClickListener((parent, view, position, id) -> {
+            String objectID = ((TableCoSoKinhDoanhAdapter.Item) parent.getItemAtPosition(position)).getObjectID();
+            mMapViewHandler.queryByObjectID(objectID);
+            coSoKinhDoanhAdapter.clear();
+            coSoKinhDoanhAdapter.notifyDataSetChanged();
+        });
+
+
+        ListView listViewSearchDiaChi = findViewById(R.id.lstview_search_diachi);
+        //đưa listview search ra phía sau
+        listViewSearchDiaChi.invalidate();
+        List<DAddress> addressItems = new ArrayList<>();
+        this.diaChiAdapter = new DiaChiAdapter(MainActivity.this, addressItems);
+        listViewSearchDiaChi.setAdapter(diaChiAdapter);
+        listViewSearchDiaChi.setOnItemClickListener((parent, view, position, id) -> {
+            Point point = ((DAddress) parent.getItemAtPosition(position)).getPoint();
+            mMapView.setViewpointCenterAsync(point, 100);
+            SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CROSS, Color.BLUE, 10);
+            Graphic graphic = new Graphic(point, symbol);
+            graphicsOverlay.getGraphics().clear();
+            graphicsOverlay.getGraphics().add(graphic);
         });
     }
 
@@ -283,7 +305,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
         });
-
+        graphicsOverlay = new GraphicsOverlay();
+        mMapView.getGraphicsOverlays().add(graphicsOverlay);
     }
 
     private void initLayerListView() {
@@ -507,41 +530,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.quan_ly_su_co, menu);
-        mTxtSearch = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        mTxtSearch.setQueryHint(getString(R.string.title_search));
-        mTxtSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        MenuItem menuSearch = menu.findItem(R.id.action_search);
+        mSearchView = (SearchView) menuSearch.getActionView();
+        mSearchView.setQueryHint(getString(R.string.title_search));
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) {
-                mMapViewHandler.querySearch(query, tableCoSoKinhDoanhAdapter);
+            public boolean onQueryTextSubmit(String search) {
+                if (mApplication.getTypeSearch().equals(Constant.TYPE_SEARCH.LAYER)) {
+                    mMapViewHandler.querySearchLayer(search, coSoKinhDoanhAdapter);
+                } else {
+                    mMapViewHandler.querySearchDiaChi(search, diaChiAdapter);
+                }
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (newText.length() == 0) {
-                    tableCoSoKinhDoanhAdapter.clear();
-                    tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
+                    coSoKinhDoanhAdapter.clear();
+                    coSoKinhDoanhAdapter.notifyDataSetChanged();
                 }
                 return false;
+            }
+        });
+        LinearLayout mLayoutTimKiem = findViewById(R.id.layout_tim_kiem);
+        menuSearch.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem menuItem) {
+                mLayoutTimKiem.setVisibility(View.VISIBLE);
+                visibleFloatActionButton();
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem menuItem) {
+                mLayoutTimKiem.setVisibility(View.INVISIBLE);
+                visibleFloatActionButton();
+                diaChiAdapter.clear();
+                diaChiAdapter.notifyDataSetChanged();
+                graphicsOverlay.getGraphics().clear();
+                return true;
             }
         });
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            MainActivity.this.mListViewSearch.setVisibility(View.VISIBLE);
-            return true;
+    private void visibleFloatActionButton() {
+        if (mFloatButtonLayer.getVisibility() == View.VISIBLE) {
+            mFloatButtonLayer.setVisibility(View.INVISIBLE);
+            mFloatButtonLocation.setVisibility(View.INVISIBLE);
+        } else {
+            mFloatButtonLayer.setVisibility(View.VISIBLE);
+            mFloatButtonLocation.setVisibility(View.VISIBLE);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -587,6 +628,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.layout_tim_cskd:
+                mApplication.setTypeSearch(Constant.TYPE_SEARCH.LAYER);
+                findViewById(R.id.layout_tim_cskd).setBackgroundResource(R.drawable.layout_border_bottom);
+                findViewById(R.id.layout_tim_dia_chi).setBackgroundResource(R.drawable.layout_shape_basemap_none);
+                break;
+            case R.id.layout_tim_dia_chi:
+                mApplication.setTypeSearch(Constant.TYPE_SEARCH.DIACHI);
+                findViewById(R.id.layout_tim_dia_chi).setBackgroundResource(R.drawable.layout_border_bottom);
+                findViewById(R.id.layout_tim_cskd).setBackgroundResource(R.drawable.layout_shape_basemap_none);
+                break;
             case R.id.floatBtnLayer:
                 v.setVisibility(View.INVISIBLE);
                 ((LinearLayout) findViewById(R.id.layout_layer)).setVisibility(View.VISIBLE);
@@ -612,13 +663,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 ((FloatingActionButton) findViewById(R.id.floatBtnLayer)).setVisibility(View.VISIBLE);
                 break;
             case R.id.img_layvitri:
-                Feature featureTBL = mApplication.getSelectedFeatureTBL();
-                if (featureTBL != null) {
-                    mMapViewHandler.addFeature();
+                Feature featureLYR = mApplication.getSelectedFeatureLYR();
+                if (featureLYR != null) {
+                    mMapViewHandler.editFeature();
                 } else {
-                    MySnackBar.make(mMapView, "Phải chọn CSKD chưa cập nhật trước", false);
+                    Feature featureTBL = mApplication.getSelectedFeatureTBL();
+                    if (featureTBL != null) {
+                        mMapViewHandler.addFeature();
+                    } else {
+                        AlertDialog alertDialog = new AlertDialog.Builder(this)
+                                .setTitle("Thêm CSKD")
+                                .setMessage("Thêm cơ sở kinh doanh phát sinh")
+                                .setIcon(R.drawable.add)
+                                .setPositiveButton("Thêm", (dialog, whichButton) -> {
+                                    mMapViewHandler.addFeature();
+                                    dialog.dismiss();
+                                })
+                                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                                .create();
+                        alertDialog.show();
+                    }
+                    addFeatureClose();
                 }
-                addFeatureClose();
+
                 break;
             case R.id.floatBtnAdd:
                 addFeature();
@@ -640,6 +707,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         findViewById(R.id.linear_addfeature).setVisibility(View.GONE);
         findViewById(R.id.img_map_pin).setVisibility(View.GONE);
         findViewById(R.id.floatBtnAdd).setVisibility(View.VISIBLE);
+        mApplication.setSelectedFeatureLYR(null);
     }
 
     public void addFeature() {

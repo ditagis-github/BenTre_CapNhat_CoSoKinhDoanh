@@ -1,9 +1,6 @@
 package bentre.ditagis.com.capnhatthongtin.mapping;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.os.AsyncTask;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
@@ -19,12 +16,9 @@ import com.esri.arcgisruntime.geometry.GeometryEngine;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.FeatureLayer;
-import com.esri.arcgisruntime.mapping.GeoElement;
 import com.esri.arcgisruntime.mapping.Viewpoint;
-import com.esri.arcgisruntime.mapping.view.IdentifyLayerResult;
 import com.esri.arcgisruntime.mapping.view.MapView;
 
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +26,14 @@ import java.util.concurrent.ExecutionException;
 
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.R;
+import bentre.ditagis.com.capnhatthongtin.adapter.DiaChiAdapter;
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
+import bentre.ditagis.com.capnhatthongtin.async.EditFeatureAsync;
+import bentre.ditagis.com.capnhatthongtin.async.FindLocationAsycn;
+import bentre.ditagis.com.capnhatthongtin.async.AddFeatureAsync;
+import bentre.ditagis.com.capnhatthongtin.async.SingleTapMapViewAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
+import bentre.ditagis.com.capnhatthongtin.entities.DAddress;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
@@ -66,19 +66,26 @@ public class MapViewHandler extends Activity {
     public void setPopupInfos(Popup popupInfos) {
         this.popupInfos = popupInfos;
     }
+    public void editFeature() {
+        EditFeatureAsync editFeatureAsync = new EditFeatureAsync(mainActivity,mMapView,()->{
 
+        });
+        Point editPoint = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
+        editFeatureAsync.execute(editPoint);
+    }
 
     public void addFeature() {
-        SingleTapAdddFeatureAsync singleTapAdddFeatureAsync = new SingleTapAdddFeatureAsync();
+        AddFeatureAsync addFeatureAsync = new AddFeatureAsync(mainActivity,mMapView);
         Point add_point = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
-        singleTapAdddFeatureAsync.execute(add_point);
+        addFeatureAsync.execute(add_point);
     }
 
     public void updateCSKDTable(double[] logLat) {
         Feature selectedFeatureTBL = mDApplication.getSelectedFeatureTBL();
+        if (selectedFeatureTBL == null) return;
         String toaDoX = "";
         String toaDoY = "";
-        if(logLat != null){
+        if (logLat != null) {
             toaDoX = String.valueOf(logLat[1]);
             toaDoY = String.valueOf(logLat[0]);
         }
@@ -104,6 +111,7 @@ public class MapViewHandler extends Activity {
             });
         });
     }
+
     public double[] pointToLogLat(Point point) {
         Geometry project = GeometryEngine.project(point, SpatialReferences.getWgs84());
         double[] location = {project.getExtent().getCenter().getX(), project.getExtent().getCenter().getY()};
@@ -112,9 +120,10 @@ public class MapViewHandler extends Activity {
 
     public void onSingleTapMapView(MotionEvent e) {
         android.graphics.Point mClickPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
-        SingleTapMapViewAsync singleTapMapViewAsync = new SingleTapMapViewAsync();
+        SingleTapMapViewAsync singleTapMapViewAsync = new SingleTapMapViewAsync(mainActivity,mMapView,popupInfos);
         singleTapMapViewAsync.execute(mClickPoint);
     }
+
     public void queryByMaKinhDoanh(String maKinhDoanh) {
         final QueryParameters queryParameters = new QueryParameters();
         StringBuilder builder = new StringBuilder();
@@ -143,7 +152,8 @@ public class MapViewHandler extends Activity {
             }
         });
     }
-    private void queryFeaturesAsync(QueryParameters queryParameters){
+
+    private void queryFeaturesAsync(QueryParameters queryParameters) {
         final ListenableFuture<FeatureQueryResult> feature = sft_CSKDLayer.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
@@ -152,7 +162,7 @@ public class MapViewHandler extends Activity {
                     Feature item = result.iterator().next();
                     popupInfos.showPopup((ArcGISFeature) item);
                     Geometry geometry = item.getGeometry();
-                    if(geometry != null){
+                    if (geometry != null) {
                         Point center = geometry.getExtent().getCenter();
                         double[] logLat = pointToLogLat(center);
                         updateCSKDTable(logLat);
@@ -166,36 +176,42 @@ public class MapViewHandler extends Activity {
             }
         });
     }
-    public void querySearch(String searchStr, final TableCoSoKinhDoanhAdapter adapter) {
+
+    public void querySearchLayer(String searchStr, final TableCoSoKinhDoanhAdapter adapter) {
         adapter.clear();
         adapter.notifyDataSetChanged();
         QueryParameters queryParameters = new QueryParameters();
         StringBuilder builder = new StringBuilder();
         for (Field field : sft_CSKDLayer.getFields()) {
-            switch (field.getFieldType()) {
-                case OID:
-                case INTEGER:
-                case SHORT:
-                    try {
-                        int search = Integer.parseInt(searchStr);
-                        builder.append(String.format("%s = %s", field.getName(), search));
-                        builder.append(" or ");
-                    } catch (Exception e) {
-                    }
-                    break;
-                case FLOAT:
-                case DOUBLE:
-                    try {
-                        double search = Double.parseDouble(searchStr);
-                        builder.append(String.format("%s = %s", field.getName(), search));
-                        builder.append(" or ");
-                    } catch (Exception e) {
-                    }
-                    break;
-                case TEXT:
-                    builder.append(field.getName() + " like N'%" + searchStr + "%'");
-                    builder.append(" or ");
-                    break;
+            if (field.getName().equals(Constant.CSKDLayerFields.TenDoanhNghiep)) {
+                builder.append("upper(").append(field.getName()).append(") like N'%")
+                        .append(searchStr.toUpperCase()).append("%' or ");
+            } else {
+                switch (field.getFieldType()) {
+                    case OID:
+                    case INTEGER:
+                    case SHORT:
+                        try {
+                            int search = Integer.parseInt(searchStr);
+                            builder.append(String.format("%s = %s", field.getName(), search));
+                            builder.append(" or ");
+                        } catch (Exception e) {
+                        }
+                        break;
+                    case FLOAT:
+                    case DOUBLE:
+                        try {
+                            double search = Double.parseDouble(searchStr);
+                            builder.append(String.format("%s = %s", field.getName(), search));
+                            builder.append(" or ");
+                        } catch (Exception e) {
+                        }
+                        break;
+                    case TEXT:
+                        builder.append("lower(").append(field.getName()).append(") like N'%")
+                                .append(searchStr.toLowerCase()).append("%' or ");
+                        break;
+                }
             }
         }
         builder.append(" 1 = 2 ");
@@ -228,7 +244,11 @@ public class MapViewHandler extends Activity {
                             item.setDiaChi(attributes.get(Constant.CSKDLayerFields.DiaChi).toString());
                         }
                         adapter.add(item);
+                    }
+                    if (adapter.getCount() > 0) {
                         adapter.notifyDataSetChanged();
+                    } else {
+                        MySnackBar.make(mMapView, mainActivity.getString(R.string.data_not_found), false);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -239,170 +259,24 @@ public class MapViewHandler extends Activity {
         });
     }
 
-    class SingleTapMapViewAsync extends AsyncTask<android.graphics.Point, Void, Void> {
-        private ProgressDialog mDialog;
-
-        public SingleTapMapViewAsync() {
-            mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mDialog.setMessage(mainActivity.getString(R.string.processing));
-            mDialog.setCancelable(false);
-            mDialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(android.graphics.Point... params) {
-            final android.graphics.Point clickPoint = params[0];
-            final ListenableFuture<IdentifyLayerResult> identifyFuture = mMapView.identifyLayerAsync(featureLayer, clickPoint, 5, false, 1);
-            identifyFuture.addDoneListener(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (mDialog != null && mDialog.isShowing()) {
-                            mDialog.dismiss();
-                        }
-                        IdentifyLayerResult layerResult = identifyFuture.get();
-                        List<GeoElement> resultGeoElements = layerResult.getElements();
-                        if (resultGeoElements.size() > 0) {
-                            if (resultGeoElements.get(0) instanceof ArcGISFeature) {
-                                ArcGISFeature feature = (ArcGISFeature) resultGeoElements.get(0);
-                                popupInfos.showPopup(feature);
-                            }
-                        } else {
-                            popupInfos.dimissCallout();
-                        }
-                        publishProgress();
-                    } catch (Exception e) {
-                        Log.e(mainActivity.getString(R.string.app_name), "Select feature failed: " + e.getMessage());
+    public void querySearchDiaChi(String search, DiaChiAdapter diaChiAdapter) {
+        diaChiAdapter.clear();
+        diaChiAdapter.notifyDataSetChanged();
+        FindLocationAsycn findLocationAsycn = new FindLocationAsycn(mainActivity,
+                true, output -> {
+            if (output != null) {
+                if (output.size() > 0) {
+                    for (DAddress address : output) {
+                        diaChiAdapter.add(address);
+                        diaChiAdapter.notifyDataSetChanged();
                     }
+                } else {
+                    MySnackBar.make(mMapView, mainActivity.getString(R.string.data_not_found), false);
                 }
-            });
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-        }
-
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-        }
-
-    }
-
-    class SingleTapAdddFeatureAsync extends AsyncTask<Point, Void, Void> {
-        private ProgressDialog mDialog;
-
-
-        public SingleTapAdddFeatureAsync() {
-            mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mDialog.setMessage("Đang xử lý...");
-            mDialog.setCancelable(false);
-            mDialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(Point... params) {
-            Point clickPoint = params[0];
-            addFeatureAsync(clickPoint);
-            return null;
-        }
-
-        private void notifyCantInsert() {
-            MySnackBar.make(mMapView, mainActivity.getString(R.string.data_cant_add), false);
-            if (mDialog != null && mDialog.isShowing()) {
-                mDialog.dismiss();
             }
 
-        }
-
-        private void notifyError() {
-            MySnackBar.make(mMapView, mainActivity.getString(R.string.error_occurred_notify), false);
-            if (mDialog != null && mDialog.isShowing()) {
-                mDialog.dismiss();
-            }
-
-        }
-
-        private void setAttributesLayer(Feature feature) {
-            Feature selectedFeatureTBL = mDApplication.getSelectedFeatureTBL();
-            Map<String, Object> attributes = selectedFeatureTBL.getAttributes();
-            feature.getAttributes().put(Constant.CSKDLayerFields.MaKinhDoanh, attributes.get(Constant.CSKDTableFields.MaKinhDoanh).toString());
-            feature.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, attributes.get(Constant.CSKDTableFields.MaPhuongXa).toString());
-            feature.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, attributes.get(Constant.CSKDTableFields.MaHuyenTP).toString());
-            feature.getAttributes().put(Constant.CSKDLayerFields.TenDoanhNghiep, attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
-            feature.getAttributes().put(Constant.CSKDLayerFields.DiaChi, attributes.get(Constant.CSKDTableFields.DiaChi).toString());
-            feature.getAttributes().put(Constant.CSKDLayerFields.DienThoai, attributes.get(Constant.CSKDTableFields.DienThoai).toString());
-            feature.getAttributes().put(Constant.CSKDLayerFields.GhiChu, mDApplication.getUser().getUserName().toString());
-        }
-
-        private void addFeatureAsync(Point clickPoint) {
-            double[] logLat = pointToLogLat(clickPoint);
-            final Feature feature = sft_CSKDLayer.createFeature();
-            feature.setGeometry(clickPoint);
-            Calendar c = Calendar.getInstance();
-            feature.getAttributes().put(Constant.TGCAP_NHAT, c);
-            setAttributesLayer(feature);
-            ListenableFuture<Void> mapViewResult = sft_CSKDLayer.addFeatureAsync(feature);
-            mapViewResult.addDoneListener(new Runnable() {
-                @Override
-                public void run() {
-                    final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDLayer.applyEditsAsync();
-                    listListenableEditAsync.addDoneListener(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
-                                if (featureEditResults.size() > 0) {
-                                    if (mDialog != null && mDialog.isShowing()) {
-                                        mDialog.dismiss();
-                                    }
-                                    updateCSKDTable(logLat);
-                                } else {
-                                    notifyCantInsert();
-                                }
-                            } catch (InterruptedException e) {
-                                notifyError();
-                                e.printStackTrace();
-                            } catch (ExecutionException e) {
-                                notifyError();
-                                e.printStackTrace();
-                            }
-
-                        }
-                    });
-                }
-            });
-        }
-
-
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            super.onProgressUpdate(values);
-
-        }
-
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-        }
-
+        });
+        findLocationAsycn.execute(search);
     }
+
 }

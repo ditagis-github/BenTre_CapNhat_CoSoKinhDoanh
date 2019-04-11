@@ -10,21 +10,12 @@
 
     <TextView
 
-        android:id="@+id/txt_settings_title"
+        android:id="@+id/txt_diachi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1ádfsdf"
-        android:textStyle="bold"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Số nhà 71, quốc lộ 60, ấp Chợ Xếp, Xã Tân Thành Bình, Huyện Mỏ Cày Bắc, Tỉnh Bến Tre, Việt Nam"
+        android:textAppearance="?android:attr/textAppearanceSmall"
 />
 
-    <TextView
-        android:id="@+id/txt_settings_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingLeft="20dp"
-        android:text="ten"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-         />
 
 </LinearLayout>

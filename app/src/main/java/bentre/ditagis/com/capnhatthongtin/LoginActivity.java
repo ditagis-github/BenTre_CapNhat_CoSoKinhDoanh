@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         mTxtUsername = findViewById(R.id.txtUsername);
         mTxtPassword = findViewById(R.id.txtPassword);
         mTxtUsername.setText("test_cnht");
-        mTxtPassword.setText("test_cnht");
+        mTxtPassword.setText("test");
         mTxtValidation = findViewById(R.id.txt_login_validation);
         create();
     }

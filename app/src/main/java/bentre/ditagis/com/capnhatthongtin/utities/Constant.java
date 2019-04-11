@@ -2,7 +2,6 @@ package bentre.ditagis.com.capnhatthongtin.utities;
 
 import java.text.SimpleDateFormat;
 
-import bentre.ditagis.com.capnhatthongtin.adapter.SettingsAdapter;
 
 /**
  * Created by ThanLe on 3/1/2018.
@@ -54,5 +53,9 @@ public class Constant {
         public static final String DISPLAY_NAME = SERVER_API + "/Account/Profile";
         public static final String LAYER_INFO = SERVER_API + "/Account/LayerInfo";
         public static final String IS_ACCESS = SERVER_API + "/Account/IsAccess/m_cnht";
+    }
+    public static class TYPE_SEARCH{
+        public static final String DIACHI = "DIACHI";
+        public static final String LAYER = "LAYER";
     }
 }

@@ -126,24 +126,19 @@ public class Popup extends AppCompatActivity {
 
 
         if (featureLayerDTG.getAction().isEdit()) {
-            ImageButton imgBtn_ViewMoreInfo = (ImageButton) linearLayout.findViewById(R.id.imgBtn_ViewMoreInfo);
+            ImageButton imgBtn_ViewMoreInfo = linearLayout.findViewById(R.id.imgBtn_ViewMoreInfo);
             imgBtn_ViewMoreInfo.setVisibility(View.VISIBLE);
-            imgBtn_ViewMoreInfo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    viewMoreInfo();
-                }
-            });
+            imgBtn_ViewMoreInfo.setOnClickListener(v -> viewMoreInfo());
+            ImageButton imgBtn_changeLocation = linearLayout.findViewById(R.id.imgBtn_changeLocation);
+            imgBtn_changeLocation.setVisibility(View.VISIBLE);
+            imgBtn_changeLocation.setOnClickListener(v -> changeLocation());
         }
         if (featureLayerDTG.getAction().isDelete()) {
-            ImageButton imgBtn_delete = (ImageButton) linearLayout.findViewById(R.id.imgBtn_delete);
+            ImageButton imgBtn_delete = linearLayout.findViewById(R.id.imgBtn_delete);
             imgBtn_delete.setVisibility(View.VISIBLE);
-            imgBtn_delete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mSelectedArcGISFeature.getFeatureTable().getFeatureLayer().clearSelection();
-                    deleteFeature();
-                }
+            imgBtn_delete.setOnClickListener(v -> {
+                mSelectedArcGISFeature.getFeatureTable().getFeatureLayer().clearSelection();
+                deleteFeature();
             });
         }
         linearLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -162,7 +157,11 @@ public class Popup extends AppCompatActivity {
         return linearLayout;
     }
 
-
+    private void changeLocation(){
+        dimissCallout();
+        mDApplication.setSelectedFeatureLYR(mSelectedArcGISFeature);
+        mDApplication.getMainActivity().addFeature();
+    }
     private void viewMoreInfo() {
         Map<String, Object> attr = mSelectedArcGISFeature.getAttributes();
         AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity, android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
@@ -180,52 +179,50 @@ public class Popup extends AppCompatActivity {
         String typeIdField = mSelectedArcGISFeature.getFeatureTable().getTypeIdField();
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attr.get(field.getName());
-            if (field.getName().equals(Constant.CSKDLayerFields.TenDoanhNghiep)) {
-                if (value != null)
+            FeatureViewMoreInfoAdapter.Item item = new FeatureViewMoreInfoAdapter.Item();
+            item.setAlias(field.getAlias());
+            item.setFieldName(field.getName());
+            if (value != null) {
+                if (field.getName().equals(Constant.CSKDLayerFields.TenDoanhNghiep)) {
                     ((TextView) layout.findViewById(R.id.txt_ten_cskd)).setText(value.toString());
-            } else {
-                FeatureViewMoreInfoAdapter.Item item = new FeatureViewMoreInfoAdapter.Item();
-                item.setAlias(field.getAlias());
-                item.setFieldName(field.getName());
-                if (value != null) {
-                    if (item.getFieldName().equals(typeIdField)) {
-                        List<FeatureType> featureTypes = mSelectedArcGISFeature.getFeatureTable().getFeatureTypes();
-                        String valueFeatureType = getValueFeatureType(featureTypes, value.toString()).toString();
-                        if (valueFeatureType != null) item.setValue(valueFeatureType);
-                    } else if (field.getDomain() != null) {
-                        List<CodedValue> codedValues = ((CodedValueDomain) this.mSelectedArcGISFeature.getFeatureTable().getField(item.getFieldName()).getDomain()).getCodedValues();
-                        Object valueDomain = getValueDomain(codedValues, value.toString());
-                        if (valueDomain != null) item.setValue(valueDomain.toString());
-                    } else switch (field.getFieldType()) {
-                        case DATE:
-                            item.setValue(Constant.DATE_FORMAT.format(((Calendar) value).getTime()));
-                            break;
-                        case OID:
-                        case TEXT:
-                            item.setValue(value.toString());
-                            break;
-                        case SHORT:
-                            item.setValue(value.toString());
-                            break;
-                    }
                 }
-                item.setEdit(false);
-                if (updateFields.length > 0) {
-                    if (updateFields[0].equals("*") || updateFields[0].equals("")) {
-                        item.setEdit(true);
-                    } else {
-                        for (String updateField : updateFields) {
-                            if (item.getFieldName().equals(updateField)) {
-                                item.setEdit(true);
-                                break;
-                            }
+                if (item.getFieldName().equals(typeIdField)) {
+                    List<FeatureType> featureTypes = mSelectedArcGISFeature.getFeatureTable().getFeatureTypes();
+                    String valueFeatureType = getValueFeatureType(featureTypes, value.toString()).toString();
+                    if (valueFeatureType != null) item.setValue(valueFeatureType);
+                } else if (field.getDomain() != null) {
+                    List<CodedValue> codedValues = ((CodedValueDomain) this.mSelectedArcGISFeature.getFeatureTable().getField(item.getFieldName()).getDomain()).getCodedValues();
+                    Object valueDomain = getValueDomain(codedValues, value.toString());
+                    if (valueDomain != null) item.setValue(valueDomain.toString());
+                } else switch (field.getFieldType()) {
+                    case DATE:
+                        item.setValue(Constant.DATE_FORMAT.format(((Calendar) value).getTime()));
+                        break;
+                    case OID:
+                    case TEXT:
+                        item.setValue(value.toString());
+                        break;
+                    case SHORT:
+                        item.setValue(value.toString());
+                        break;
+                }
+            }
+            item.setEdit(false);
+            if (updateFields.length > 0) {
+                if (updateFields[0].equals("*") || updateFields[0].equals("")) {
+                    item.setEdit(true);
+                } else {
+                    for (String updateField : updateFields) {
+                        if (item.getFieldName().equals(updateField)) {
+                            item.setEdit(true);
+                            break;
                         }
                     }
                 }
-                item.setFieldType(field.getFieldType());
-                adapter.add(item);
-                adapter.notifyDataSetChanged();
             }
+            item.setFieldType(field.getFieldType());
+            adapter.add(item);
+            adapter.notifyDataSetChanged();
         }
         builder.setView(layout);
         builder.setCancelable(false);
@@ -449,7 +446,7 @@ public class Popup extends AppCompatActivity {
                 dialog.dismiss();
                 mSelectedArcGISFeature.loadAsync();
                 Object maKinhDoanh = mSelectedArcGISFeature.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
-                if(maKinhDoanh != null){
+                if (maKinhDoanh != null) {
                     getSelectedFeature(maKinhDoanh.toString());
                 }
                 // update the selected feature
