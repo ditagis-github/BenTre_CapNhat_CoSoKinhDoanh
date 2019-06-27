@@ -39,11 +39,6 @@ public class MapViewAddDoneLoadingListener {
             }
             mDApplication.setHanhChinhXaList(hanhChinhXaList);
         }).execute();
-
-
-
-
-
     }
     public static class HanhChinhXa{
         private String tenPhuongXa;

@@ -67,6 +67,8 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
         String queryClause = params[0];
         queryParameters.setWhereClause(queryClause);
         queryParameters.setMaxFeatures(100);
+        QueryParameters.OrderBy orderBy = new QueryParameters.OrderBy("TGCapNhat", QueryParameters.SortOrder.DESCENDING);
+        queryParameters.getOrderByFields().add(orderBy);
         final ListenableFuture<FeatureQueryResult> queryResultListenableFuture = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         queryResultListenableFuture.addDoneListener(new Runnable() {
             @Override

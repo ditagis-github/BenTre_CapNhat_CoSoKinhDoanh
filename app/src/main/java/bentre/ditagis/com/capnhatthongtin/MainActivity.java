@@ -356,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             featureLayerDTG.setQueryFields(getFieldsDTG(layerInfoDTG.getOutField()));
             featureLayerDTG.setUpdateFields(getFieldsDTG(layerInfoDTG.getOutField()));
             if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.layer_cosokinhdoanh))) {
+                featureLayerDTG.setTitleLayer(getString(R.string.title_layer));
                 featureLayer.setPopupEnabled(true);
                 featureLayer.loadAsync();
                 mFeatureLayerDTGS.add(featureLayerDTG);
@@ -758,7 +759,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case Constant.REQUEST.QUERY:
                 if (resultCode == Activity.RESULT_OK) {
-                    addFeature();
+//                    addFeature();
                 }
 
                 break;

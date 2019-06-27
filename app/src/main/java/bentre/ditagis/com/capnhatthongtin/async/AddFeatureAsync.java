@@ -86,7 +86,7 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         feature.getAttributes().put(Constant.CSKDLayerFields.TenDoanhNghiep, attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
         feature.getAttributes().put(Constant.CSKDLayerFields.DiaChi, attributes.get(Constant.CSKDTableFields.DiaChi).toString());
         feature.getAttributes().put(Constant.CSKDLayerFields.DienThoai, attributes.get(Constant.CSKDTableFields.DienThoai).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.GhiChu, dApplication.getUser().getUserName().toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.NguoiTao, dApplication.getUser().getUserName().toString());
     }
 
     private void addFeatureAsync(Point clickPoint) {
@@ -127,7 +127,6 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         }
 
     }
-
     private double[] pointToLogLat(Point point) {
         Geometry project = GeometryEngine.project(point, SpatialReferences.getWgs84());
         double[] location = {project.getExtent().getCenter().getX(), project.getExtent().getCenter().getY()};
@@ -180,6 +179,8 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         }
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, toaDoX);
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, toaDoY);
+        Calendar c = Calendar.getInstance();
+        selectedFeatureTBL.getAttributes().put(Constant.TGCAP_NHAT, c);
         ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
         mapViewResult.addDoneListener(() -> {
             final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();

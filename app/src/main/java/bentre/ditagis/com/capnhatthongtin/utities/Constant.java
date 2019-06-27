@@ -21,20 +21,32 @@ public class Constant {
         public static final int PERMISS = 2;
         public static final int CAMERA = 3;
     }
+
     public static class HanhChinhFields {
         public static final String tenxa = "tenxa";
         public static final String maxa = "maxa";
         public static final String tenhuyen = "tenhuyen";
         public static final String mahuyen = "mahuyen";
     }
+
+    //    public static class CSKDLayerFields {
+//        public static final String MaKinhDoanh = "MaKinhDoanh";
+//        public static final String MaPhuongXa = "MaPhuongXa";
+//        public static final String MaHuyenTP = "MaHuyenTP";
+//        public static final String TenDoanhNghiep = "TenDoanhNghiep";
+//        public static final String DiaChi = "DiaChi";
+//        public static final String DienThoai = "DienThoai";
+//        public static final String GhiChu = "GhiChu";
+//    }
     public static class CSKDLayerFields {
-        public static final String MaKinhDoanh = "MaKinhDoanh";
+        public static final String MaKinhDoanh = "MaCSKD";
         public static final String MaPhuongXa = "MaPhuongXa";
         public static final String MaHuyenTP = "MaHuyenTP";
-        public static final String TenDoanhNghiep = "TenDoanhNghiep";
+        public static final String TenDoanhNghiep = "TenCSKD";
         public static final String DiaChi = "DiaChi";
-        public static final String DienThoai = "DienThoai";
+        public static final String DienThoai = "SoDienThoai";
         public static final String GhiChu = "GhiChu";
+        public static final String NguoiTao = "NguoiTao";
     }
 
     public static class CSKDTableFields {
@@ -54,7 +66,8 @@ public class Constant {
         public static final String LAYER_INFO = SERVER_API + "/Account/LayerInfo";
         public static final String IS_ACCESS = SERVER_API + "/Account/IsAccess/m_cnht";
     }
-    public static class TYPE_SEARCH{
+
+    public static class TYPE_SEARCH {
         public static final String DIACHI = "DIACHI";
         public static final String LAYER = "LAYER";
     }

@@ -327,25 +327,17 @@ public class Popup extends AppCompatActivity {
                     case DATE:
                         layoutTextView.setVisibility(View.VISIBLE);
                         textView.setText(item.getValue());
-                        img_selectTime.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                final View dialogView = View.inflate(mainActivity, R.layout.date_time_picker, null);
-                                final android.app.AlertDialog alertDialog = new android.app.AlertDialog.Builder(mainActivity).create();
-                                dialogView.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        DatePicker datePicker = (DatePicker) dialogView.findViewById(R.id.date_picker);
-                                        Calendar calendar = new GregorianCalendar(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                                        String s = String.format("%02d/%02d/%d", datePicker.getDayOfMonth(), datePicker.getMonth() + 1, datePicker.getYear());
-
-                                        textView.setText(s);
-                                        alertDialog.dismiss();
-                                    }
-                                });
-                                alertDialog.setView(dialogView);
-                                alertDialog.show();
-                            }
+                        img_selectTime.setOnClickListener(v -> {
+                            final View dialogView = View.inflate(mainActivity, R.layout.date_time_picker, null);
+                            final android.app.AlertDialog alertDialog = new android.app.AlertDialog.Builder(mainActivity).create();
+                            dialogView.findViewById(R.id.date_time_set).setOnClickListener(view1 -> {
+                                DatePicker datePicker =  dialogView.findViewById(R.id.date_picker);
+                                String s = String.format("%02d/%02d/%d", datePicker.getDayOfMonth(), datePicker.getMonth() + 1, datePicker.getYear());
+                                textView.setText(s);
+                                alertDialog.dismiss();
+                            });
+                            alertDialog.setView(dialogView);
+                            alertDialog.show();
                         });
                         break;
                     case TEXT:
@@ -365,41 +357,38 @@ public class Popup extends AppCompatActivity {
                         editText.setText(item.getValue());
                         break;
                 }
-                builder.setPositiveButton("Cập nhật", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (item.getFieldName().equals(mSelectedArcGISFeature.getFeatureTable().getTypeIdField()) || (domain != null)) {
-                            item.setValue(spin.getSelectedItem().toString());
-                        } else {
-                            switch (item.getFieldType()) {
-                                case DATE:
-                                    item.setValue(textView.getText().toString());
-                                    break;
-                                case DOUBLE:
-                                    try {
-                                        double x = Double.parseDouble(editText.getText().toString());
-                                        item.setValue(editText.getText().toString());
-                                    } catch (Exception e) {
-                                        Toast.makeText(mainActivity, R.string.input_format_incorrect, Toast.LENGTH_LONG).show();
-                                    }
-                                    break;
-                                case TEXT:
+                builder.setPositiveButton("Cập nhật", (dialog, which) -> {
+                    if (item.getFieldName().equals(mSelectedArcGISFeature.getFeatureTable().getTypeIdField()) || (domain != null)) {
+                        item.setValue(spin.getSelectedItem().toString());
+                    } else {
+                        switch (item.getFieldType()) {
+                            case DATE:
+                                item.setValue(textView.getText().toString());
+                                break;
+                            case DOUBLE:
+                                try {
+                                    double x = Double.parseDouble(editText.getText().toString());
                                     item.setValue(editText.getText().toString());
-                                    break;
-                                case SHORT:
-                                    try {
-                                        short x = Short.parseShort(editText.getText().toString());
-                                        item.setValue(editText.getText().toString());
-                                    } catch (Exception e) {
-                                        Toast.makeText(mainActivity, R.string.input_format_incorrect, Toast.LENGTH_LONG).show();
-                                    }
-                                    break;
-                            }
+                                } catch (Exception e) {
+                                    Toast.makeText(mainActivity, R.string.input_format_incorrect, Toast.LENGTH_LONG).show();
+                                }
+                                break;
+                            case TEXT:
+                                item.setValue(editText.getText().toString());
+                                break;
+                            case SHORT:
+                                try {
+                                    short x = Short.parseShort(editText.getText().toString());
+                                    item.setValue(editText.getText().toString());
+                                } catch (Exception e) {
+                                    Toast.makeText(mainActivity, R.string.input_format_incorrect, Toast.LENGTH_LONG).show();
+                                }
+                                break;
                         }
-                        dialog.dismiss();
-                        FeatureViewMoreInfoAdapter adapter = (FeatureViewMoreInfoAdapter) parent.getAdapter();
-                        new NotifyDataSetChangeAsync(mainActivity).execute(adapter);
                     }
+                    dialog.dismiss();
+                    FeatureViewMoreInfoAdapter adapter = (FeatureViewMoreInfoAdapter) parent.getAdapter();
+                    new NotifyDataSetChangeAsync(mainActivity).execute(adapter);
                 });
                 builder.setView(layout);
                 AlertDialog dialog = builder.create();
@@ -411,7 +400,7 @@ public class Popup extends AppCompatActivity {
 
     }
 
-    public void getSelectedFeature(String maKinhDoanh) {
+    public void getSelectedFeatureAndUpdateCSKDTable(String maKinhDoanh) {
         mDApplication.setSelectedFeatureTBL(null);
         final QueryParameters queryParameters = new QueryParameters();
         StringBuilder builder = new StringBuilder();
@@ -440,62 +429,51 @@ public class Popup extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity, android.R.style.Theme_Material_Light_Dialog_Alert);
         builder.setTitle("Xác nhận");
         builder.setMessage(R.string.question_delete_point);
-        builder.setPositiveButton("Có", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                mSelectedArcGISFeature.loadAsync();
-                Object maKinhDoanh = mSelectedArcGISFeature.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
-                if (maKinhDoanh != null) {
-                    getSelectedFeature(maKinhDoanh.toString());
-                }
-                // update the selected feature
-                mSelectedArcGISFeature.addDoneLoadingListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mSelectedArcGISFeature.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
-                            Log.d(getResources().getString(R.string.app_name), "Error while loading feature");
-                        }
-                        try {
-                            // update feature in the feature table
-                            ListenableFuture<Void> mapViewResult = layer_CoSoKinhDoanh.deleteFeatureAsync(mSelectedArcGISFeature);
-                            mapViewResult.addDoneListener(new Runnable() {
-                                @Override
-                                public void run() {
-                                    // apply change to the server
-                                    final ListenableFuture<List<FeatureEditResult>> serverResult = layer_CoSoKinhDoanh.applyEditsAsync();
-                                    serverResult.addDoneListener(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            List<FeatureEditResult> edits = null;
-                                            try {
-                                                edits = serverResult.get();
-                                                if (edits.size() > 0) {
-                                                }
-                                            } catch (InterruptedException e) {
-                                                e.printStackTrace();
-                                            } catch (ExecutionException e) {
-                                                e.printStackTrace();
-                                            }
-
-                                        }
-                                    });
-                                }
-                            });
-
-                        } catch (Exception e) {
-                            Log.e(getResources().getString(R.string.app_name), "deteting feature in the feature table failed: " + e.getMessage());
-                        }
+        builder.setPositiveButton("Có", (dialog, which) -> {
+            dialog.dismiss();
+            mSelectedArcGISFeature.loadAsync();
+            Object maKinhDoanh = mSelectedArcGISFeature.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
+            if (maKinhDoanh != null) {
+                getSelectedFeatureAndUpdateCSKDTable(maKinhDoanh.toString());
+            }
+            // update the selected feature
+            mSelectedArcGISFeature.addDoneLoadingListener(new Runnable() {
+                @Override
+                public void run() {
+                    if (mSelectedArcGISFeature.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
+                        Log.d(getResources().getString(R.string.app_name), "Error while loading feature");
                     }
-                });
-                if (mCallout != null) mCallout.dismiss();
-            }
-        }).setNegativeButton("Không", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        }).setCancelable(false);
+                    try {
+                        // update feature in the feature table
+                        ListenableFuture<Void> mapViewResult = layer_CoSoKinhDoanh.deleteFeatureAsync(mSelectedArcGISFeature);
+                        mapViewResult.addDoneListener(new Runnable() {
+                            @Override
+                            public void run() {
+                                // apply change to the server
+                                final ListenableFuture<List<FeatureEditResult>> serverResult = layer_CoSoKinhDoanh.applyEditsAsync();
+                                serverResult.addDoneListener(() -> {
+                                    List<FeatureEditResult> edits = null;
+                                    try {
+                                        edits = serverResult.get();
+                                        if (edits.size() > 0) {
+                                        }
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    } catch (ExecutionException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                });
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        Log.e(getResources().getString(R.string.app_name), "deteting feature in the feature table failed: " + e.getMessage());
+                    }
+                }
+            });
+            if (mCallout != null) mCallout.dismiss();
+        }).setNegativeButton("Không", (dialog, which) -> dialog.dismiss()).setCancelable(false);
         AlertDialog dialog = builder.create();
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.show();

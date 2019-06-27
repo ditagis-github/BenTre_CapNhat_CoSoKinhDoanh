@@ -1,6 +1,8 @@
 package bentre.ditagis.com.capnhatthongtin.mapping;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.view.MotionEvent;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
@@ -45,7 +47,6 @@ import bentre.ditagis.com.capnhatthongtin.utities.Popup;
 
 public class MapViewHandler extends Activity {
 
-    private final FeatureLayer featureLayer;
     private MapView mMapView;
 
     private Popup popupInfos;
@@ -58,7 +59,6 @@ public class MapViewHandler extends Activity {
         this.mMapView = mMapView;
         this.mainActivity = mainActivity;
         this.mDApplication = (DApplication) mainActivity.getApplication();
-        this.featureLayer = mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer();
         this.sft_CSKDTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
         this.sft_CSKDLayer = (ServiceFeatureTable) mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
     }
@@ -66,8 +66,9 @@ public class MapViewHandler extends Activity {
     public void setPopupInfos(Popup popupInfos) {
         this.popupInfos = popupInfos;
     }
+
     public void editFeature() {
-        EditFeatureAsync editFeatureAsync = new EditFeatureAsync(mainActivity,mMapView,()->{
+        EditFeatureAsync editFeatureAsync = new EditFeatureAsync(mainActivity, mMapView, () -> {
 
         });
         Point editPoint = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
@@ -75,8 +76,9 @@ public class MapViewHandler extends Activity {
     }
 
     public void addFeature() {
-        AddFeatureAsync addFeatureAsync = new AddFeatureAsync(mainActivity,mMapView);
-        Point add_point = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
+        Point add_point;
+        AddFeatureAsync addFeatureAsync = new AddFeatureAsync(mainActivity, mMapView);
+        add_point = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
         addFeatureAsync.execute(add_point);
     }
 
@@ -120,18 +122,11 @@ public class MapViewHandler extends Activity {
 
     public void onSingleTapMapView(MotionEvent e) {
         android.graphics.Point mClickPoint = new android.graphics.Point((int) e.getX(), (int) e.getY());
-        SingleTapMapViewAsync singleTapMapViewAsync = new SingleTapMapViewAsync(mainActivity,mMapView,popupInfos);
+        SingleTapMapViewAsync singleTapMapViewAsync = new SingleTapMapViewAsync(mainActivity, mMapView, popupInfos);
         singleTapMapViewAsync.execute(mClickPoint);
     }
 
-    public void queryByMaKinhDoanh(String maKinhDoanh) {
-        final QueryParameters queryParameters = new QueryParameters();
-        StringBuilder builder = new StringBuilder();
-        builder.append("MaKinhDoanh like N'%" + maKinhDoanh + "%'");
-        queryParameters.setWhereClause(builder.toString());
-        queryParameters.setReturnGeometry(true);
-        queryFeaturesAsync(queryParameters);
-    }
+
 
     public void queryByObjectID(String objectID) {
         final QueryParameters queryParameters = new QueryParameters();
@@ -152,22 +147,59 @@ public class MapViewHandler extends Activity {
             }
         });
     }
-
-    private void queryFeaturesAsync(QueryParameters queryParameters) {
+    public void queryByMaKinhDoanh(TableCoSoKinhDoanhAdapter.Item item) {
+        final QueryParameters queryParameters = new QueryParameters();
+        StringBuilder builder = new StringBuilder();
+        builder.append(Constant.CSKDLayerFields.MaKinhDoanh + " like N'%" + item.getMaKinhDoanh() + "%'");
+        queryParameters.setWhereClause(builder.toString());
+        queryParameters.setReturnGeometry(true);
+        queryFeaturesAsync(queryParameters,item);
+    }
+    private void queryFeaturesAsync(QueryParameters queryParameters,TableCoSoKinhDoanhAdapter.Item item) {
         final ListenableFuture<FeatureQueryResult> feature = sft_CSKDLayer.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
                 FeatureQueryResult result = feature.get();
                 if (result.iterator().hasNext()) {
-                    Feature item = result.iterator().next();
-                    popupInfos.showPopup((ArcGISFeature) item);
-                    Geometry geometry = item.getGeometry();
-                    if (geometry != null) {
-                        Point center = geometry.getExtent().getCenter();
-                        double[] logLat = pointToLogLat(center);
-                        updateCSKDTable(logLat);
+                    Feature next = result.iterator().next();
+                    popupInfos.showPopup((ArcGISFeature) next);
+                    if (item.getToaDoX().equals("") || item.getToaDoY().equals("")) {
+                        AlertDialog alertDialog = new AlertDialog.Builder(mainActivity)
+                                .setTitle("Thông báo")
+                                .setMessage("CSKD đã có!")
+                                .setIcon(R.drawable.add)
+                                .setPositiveButton("Cập nhật vị trí kinh doanh", (dialog, whichButton) -> {
+                                    Geometry geometry = next.getGeometry();
+                                    if (geometry != null) {
+                                        Point center = geometry.getExtent().getCenter();
+                                        double[] logLat = pointToLogLat(center);
+                                        updateCSKDTable(logLat);
+                                    }
+                                    dialog.dismiss();
+                                })
+                                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                                .create();
+                        alertDialog.show();
                     }
-                    mDApplication.getMainActivity().addFeatureClose();
+
+                }
+                else {
+                    if (item.getToaDoX().equals("") || item.getToaDoY().equals("")) {
+                        this.mainActivity.addFeature();
+                    }
+                    else {
+                        AlertDialog alertDialog = new AlertDialog.Builder(mainActivity)
+                                .setTitle("Thông báo")
+                                .setMessage("Không tìm được CSKD đã thêm!")
+                                .setIcon(R.drawable.add)
+                                .setPositiveButton("Thêm lại", (dialog, whichButton) -> {
+                                    mainActivity.addFeature();
+                                    dialog.dismiss();
+                                })
+                                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                                .create();
+                        alertDialog.show();
+                    }
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
