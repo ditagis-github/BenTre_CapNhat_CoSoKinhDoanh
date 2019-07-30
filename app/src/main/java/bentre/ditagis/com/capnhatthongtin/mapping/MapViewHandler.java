@@ -21,6 +21,7 @@ import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.MapView;
 
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,6 @@ public class MapViewHandler extends Activity {
 
     public void editFeature() {
         EditFeatureAsync editFeatureAsync = new EditFeatureAsync(mainActivity, mMapView, () -> {
-
         });
         Point editPoint = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
         editFeatureAsync.execute(editPoint);
@@ -93,6 +93,8 @@ public class MapViewHandler extends Activity {
         }
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, toaDoX);
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, toaDoY);
+        Calendar c = Calendar.getInstance();
+        selectedFeatureTBL.getAttributes().put(Constant.TGCAP_NHAT, c);
         ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
         mapViewResult.addDoneListener(() -> {
             final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();
@@ -214,39 +216,46 @@ public class MapViewHandler extends Activity {
         adapter.notifyDataSetChanged();
         QueryParameters queryParameters = new QueryParameters();
         StringBuilder builder = new StringBuilder();
-        for (Field field : sft_CSKDLayer.getFields()) {
-            if (field.getName().equals(Constant.CSKDLayerFields.TenDoanhNghiep)) {
-                builder.append("upper(").append(field.getName()).append(") like N'%")
-                        .append(searchStr.toUpperCase()).append("%' or ");
-            } else {
-                switch (field.getFieldType()) {
-                    case OID:
-                    case INTEGER:
-                    case SHORT:
-                        try {
-                            int search = Integer.parseInt(searchStr);
-                            builder.append(String.format("%s = %s", field.getName(), search));
-                            builder.append(" or ");
-                        } catch (Exception e) {
+        String[] searchFields = mainActivity.getResources().getStringArray(R.array.searchFields);
+        for (String searchField: searchFields) {
+            for (Field field : sft_CSKDLayer.getFields()) {
+                if(searchField.equals(field.getName())) {
+                    if (field.getName().equals(Constant.CSKDLayerFields.TenDoanhNghiep)) {
+                        builder.append("upper(").append(field.getName()).append(") like N'%")
+                                .append(searchStr.toUpperCase()).append("%' or ");
+                    } else {
+                        switch (field.getFieldType()) {
+                            case OID:
+                            case INTEGER:
+                            case SHORT:
+                                try {
+                                    int search = Integer.parseInt(searchStr);
+                                    builder.append(String.format("%s = %s", field.getName(), search));
+                                    builder.append(" or ");
+                                } catch (Exception e) {
+                                }
+                                break;
+                            case FLOAT:
+                            case DOUBLE:
+                                try {
+                                    double search = Double.parseDouble(searchStr);
+                                    builder.append(String.format("%s = %s", field.getName(), search));
+                                    builder.append(" or ");
+                                } catch (Exception e) {
+                                }
+                                break;
+                            case TEXT:
+                                builder.append(field.getName()).append(" LIKE N'%")
+                                        .append(searchStr).append("%' or ");
+                                break;
                         }
-                        break;
-                    case FLOAT:
-                    case DOUBLE:
-                        try {
-                            double search = Double.parseDouble(searchStr);
-                            builder.append(String.format("%s = %s", field.getName(), search));
-                            builder.append(" or ");
-                        } catch (Exception e) {
-                        }
-                        break;
-                    case TEXT:
-                        builder.append("lower(").append(field.getName()).append(") like N'%")
-                                .append(searchStr.toLowerCase()).append("%' or ");
-                        break;
+                    }
+                    break;
                 }
             }
         }
-        builder.append(" 1 = 2 ");
+        // Query the feature table
+        builder.append(" 1 = 2");
         queryParameters.setWhereClause(builder.toString());
         queryParameters.setMaxFeatures(100);
         queryAsync(queryParameters, adapter);
@@ -255,38 +264,35 @@ public class MapViewHandler extends Activity {
 
     private void queryAsync(QueryParameters queryParameters, TableCoSoKinhDoanhAdapter adapter) {
         final ListenableFuture<FeatureQueryResult> feature = sft_CSKDLayer.queryFeaturesAsync(queryParameters);
-        feature.addDoneListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    FeatureQueryResult result = feature.get();
-                    Iterator iterator = result.iterator();
-                    while (iterator.hasNext()) {
-                        Feature feature = (Feature) iterator.next();
-                        Map<String, Object> attributes = feature.getAttributes();
-                        TableCoSoKinhDoanhAdapter.Item item = new TableCoSoKinhDoanhAdapter.Item();
-                        item.setObjectID(attributes.get(Constant.OBJECTID).toString());
-                        if (attributes.get(Constant.CSKDLayerFields.MaKinhDoanh) != null) {
-                            item.setMaKinhDoanh(attributes.get(Constant.CSKDLayerFields.MaKinhDoanh).toString());
-                        }
-                        if (attributes.get(Constant.CSKDLayerFields.TenDoanhNghiep) != null) {
-                            item.setTenDoanhNghiep(attributes.get(Constant.CSKDLayerFields.TenDoanhNghiep).toString());
-                        }
-                        if (attributes.get(Constant.CSKDLayerFields.DiaChi) != null) {
-                            item.setDiaChi(attributes.get(Constant.CSKDLayerFields.DiaChi).toString());
-                        }
-                        adapter.add(item);
+        feature.addDoneListener(() -> {
+            try {
+                FeatureQueryResult result = feature.get();
+                Iterator iterator = result.iterator();
+                while (iterator.hasNext()) {
+                    Feature feature1 = (Feature) iterator.next();
+                    Map<String, Object> attributes = feature1.getAttributes();
+                    TableCoSoKinhDoanhAdapter.Item item = new TableCoSoKinhDoanhAdapter.Item();
+                    item.setObjectID(attributes.get(Constant.OBJECTID).toString());
+                    if (attributes.get(Constant.CSKDLayerFields.MaKinhDoanh) != null) {
+                        item.setMaKinhDoanh(attributes.get(Constant.CSKDLayerFields.MaKinhDoanh).toString());
                     }
-                    if (adapter.getCount() > 0) {
-                        adapter.notifyDataSetChanged();
-                    } else {
-                        MySnackBar.make(mMapView, mainActivity.getString(R.string.data_not_found), false);
+                    if (attributes.get(Constant.CSKDLayerFields.TenDoanhNghiep) != null) {
+                        item.setTenDoanhNghiep(attributes.get(Constant.CSKDLayerFields.TenDoanhNghiep).toString());
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+                    if (attributes.get(Constant.CSKDLayerFields.DiaChi) != null) {
+                        item.setDiaChi(attributes.get(Constant.CSKDLayerFields.DiaChi).toString());
+                    }
+                    adapter.add(item);
                 }
+                if (adapter.getCount() > 0) {
+                    adapter.notifyDataSetChanged();
+                } else {
+                    MySnackBar.make(mMapView, mainActivity.getString(R.string.data_not_found), false);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
         });
     }

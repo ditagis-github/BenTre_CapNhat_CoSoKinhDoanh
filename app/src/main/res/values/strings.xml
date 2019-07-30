@@ -79,6 +79,7 @@
     <string name="TT_ChuaXuLi">Chưa xử lý</string>
     <string name="data_not_found">Không tìm thấy dữ liệu</string>
     <string name="data_cant_add">Không thêm được dữ liệu</string>
+    <string name="data_wrong_location">Vị trí cơ sở kinh doanh không thuộc vùng quản lý</string>
     <string name="error_occurred_notify">Đã xảy ra lỗi</string>
     <string name="processing">Đang xử lý...</string>
     <string name="all_value">Tất cả</string>

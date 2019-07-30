@@ -6,6 +6,8 @@ import android.os.AsyncTask;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureEditResult;
+import com.esri.arcgisruntime.data.FeatureQueryResult;
+import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
@@ -17,6 +19,7 @@ import com.esri.arcgisruntime.tasks.geocode.LocatorTask;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +63,13 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         addFeatureAsync(clickPoint);
         return null;
     }
+    private void notifyWrongLocation() {
+        MySnackBar.make(mapView, mainActivity.getString(R.string.data_wrong_location), false);
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
 
+    }
     private void notifyCantInsert() {
         MySnackBar.make(mapView, mainActivity.getString(R.string.data_cant_add), false);
         if (mDialog != null && mDialog.isShowing()) {
@@ -90,42 +99,70 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
     }
 
     private void addFeatureAsync(Point clickPoint) {
-        final Feature feature = sft_CSKDLayer.createFeature();
-        feature.setGeometry(clickPoint);
-        Calendar c = Calendar.getInstance();
-        feature.getAttributes().put(Constant.TGCAP_NHAT, c);
-        Feature featureTBL = dApplication.getSelectedFeatureTBL();
-        if (featureTBL != null) {
-            double[] logLat = pointToLogLat(clickPoint);
-            setAttributesLayer(feature);
-            applyEditsAsync(feature, logLat);
-        } else {
-            final ListenableFuture<List<GeocodeResult>> listListenableFuture = loc.reverseGeocodeAsync(clickPoint);
-            listListenableFuture.addDoneListener(() -> {
+        QueryParameters queryParameters = new QueryParameters();
+        queryParameters.setGeometry(clickPoint);
+        final ListenableFuture<FeatureQueryResult> featureQueryResultListenableFuture = this.dApplication.getSft_HanhChinhXa().queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
+        featureQueryResultListenableFuture.addDoneListener(new Runnable() {
+            @Override
+            public void run() {
                 try {
-                    List<GeocodeResult> geocodeResults = listListenableFuture.get();
-                    if (geocodeResults.size() > 0) {
-                        GeocodeResult geocodeResult = geocodeResults.get(0);
-                        Map<String, Object> attrs = new HashMap<>();
-                        for (String key : geocodeResult.getAttributes().keySet()) {
-                            attrs.put(key, geocodeResult.getAttributes().get(key));
+                    FeatureQueryResult result = featureQueryResultListenableFuture.get();
+                    Iterator<Feature> iterator = result.iterator();
+                    if (iterator.hasNext()) {
+                        Feature feature = iterator.next();
+                        if(feature != null){
+                            String maHuyen = feature.getAttributes().get(Constant.HanhChinhFields.mahuyentp).toString();
+                            String maXa = feature.getAttributes().get(Constant.HanhChinhFields.maxa).toString();
+                            final Feature featureAdd = sft_CSKDLayer.createFeature();
+                            featureAdd.setGeometry(clickPoint);
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, maHuyen);
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, maXa);
+                            Calendar c = Calendar.getInstance();
+                            featureAdd.getAttributes().put(Constant.TGCAP_NHAT, c);
+                            Feature featureTBL = dApplication.getSelectedFeatureTBL();
+                            if (featureTBL != null) {
+                                double[] logLat = pointToLogLat(clickPoint);
+                                setAttributesLayer(featureAdd);
+                                applyEditsAsync(featureAdd, logLat);
+                            } else {
+                                final ListenableFuture<List<GeocodeResult>> listListenableFuture = loc.reverseGeocodeAsync(clickPoint);
+                                listListenableFuture.addDoneListener(() -> {
+                                    try {
+                                        List<GeocodeResult> geocodeResults = listListenableFuture.get();
+                                        if (geocodeResults.size() > 0) {
+                                            GeocodeResult geocodeResult = geocodeResults.get(0);
+                                            Map<String, Object> attrs = new HashMap<>();
+                                            for (String key : geocodeResult.getAttributes().keySet()) {
+                                                attrs.put(key, geocodeResult.getAttributes().get(key));
+                                            }
+                                            String address = geocodeResult.getAttributes().get("LongLabel").toString();
+                                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.DiaChi, address);
+                                            applyEditsAsync(featureAdd, null);
+                                        }
+                                    } catch (InterruptedException e1) {
+                                        notifyError();
+                                        e1.printStackTrace();
+                                    } catch (ExecutionException e1) {
+                                        notifyError();
+                                        e1.printStackTrace();
+                                    }
+                                });
+                            }
                         }
-                        String address = geocodeResult.getAttributes().get("LongLabel").toString();
-                        feature.getAttributes().put(Constant.CSKDLayerFields.DiaChi, address);
-                        applyEditsAsync(feature, null);
+                        else {
+                            notifyWrongLocation();
+                        }
                     }
-                } catch (InterruptedException e1) {
-                    notifyError();
-                    e1.printStackTrace();
-                } catch (ExecutionException e1) {
-                    notifyError();
-                    e1.printStackTrace();
+                    else {
+                        notifyWrongLocation();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                 }
-
-
-            });
-        }
-
+            }
+        });
     }
     private double[] pointToLogLat(Point point) {
         Geometry project = GeometryEngine.project(point, SpatialReferences.getWgs84());

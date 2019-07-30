@@ -20,7 +20,7 @@ import bentre.ditagis.com.capnhatthongtin.R;
  * Created by ThanLe on 4/16/2018.
  */
 
-public class QueryHanhChinhAsync extends AsyncTask<Void, ArrayList<Feature>, Void> {
+public class QueryHanhChinhsAsync extends AsyncTask<Void, ArrayList<Feature>, Void> {
     public interface AsyncResponse {
         void processFinish(ArrayList<Feature> output);
     }
@@ -32,7 +32,7 @@ public class QueryHanhChinhAsync extends AsyncTask<Void, ArrayList<Feature>, Voi
     private ServiceFeatureTable mServiceFeatureTable;
     public  ArrayList<Feature> features;
 
-    public QueryHanhChinhAsync(Context context, ServiceFeatureTable serviceFeatureTable, AsyncResponse delegate) {
+    public QueryHanhChinhsAsync(Context context, ServiceFeatureTable serviceFeatureTable, AsyncResponse delegate) {
         mContext = context;
         mServiceFeatureTable = serviceFeatureTable;
         mDialog = new ProgressDialog(context, android.R.style.Theme_Material_Dialog_Alert);

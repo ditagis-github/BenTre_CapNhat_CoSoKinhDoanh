@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
-import bentre.ditagis.com.capnhatthongtin.async.QueryHanhChinhAsync;
+import bentre.ditagis.com.capnhatthongtin.async.QueryHanhChinhsAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
@@ -21,19 +21,19 @@ public class MapViewAddDoneLoadingListener {
     public void getHanhChinh() {
         HashMap<String, String> hashMapHuyenTP = new HashMap<>();
         ArrayList<HanhChinhXa> hanhChinhXaList = new ArrayList<>();
-        new QueryHanhChinhAsync(mMainActivity, this.mDApplication.getSft_HanhChinhHuyen(), output -> {
+        new QueryHanhChinhsAsync(mMainActivity, this.mDApplication.getSft_HanhChinhHuyen(), output -> {
             for (Feature feature : output) {
                 String tenHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.tenhuyen).toString();
-                String maHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.mahuyen).toString();
+                String maHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.maquanhuyen).toString();
                 hashMapHuyenTP.put(maHuyenTP,tenHuyenTP);
             }
             mDApplication.setHashMapHuyenTP(hashMapHuyenTP);
         }).execute();
-        new QueryHanhChinhAsync(mMainActivity, this.mDApplication.getSft_HanhChinhXa(), output ->{
+        new QueryHanhChinhsAsync(mMainActivity, this.mDApplication.getSft_HanhChinhXa(), output ->{
             for (Feature feature : output) {
                 String tenPhuongXa = feature.getAttributes().get(Constant.HanhChinhFields.tenxa).toString();
                 String maPhuongXa = feature.getAttributes().get(Constant.HanhChinhFields.maxa).toString();
-                String maHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.mahuyen).toString();
+                String maHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.mahuyentp).toString();
                 HanhChinhXa hanhChinhXa = new HanhChinhXa(tenPhuongXa,maPhuongXa,maHuyenTP);
                 hanhChinhXaList.add(hanhChinhXa);
             }

@@ -71,7 +71,7 @@ public class DApplication extends Application {
         this.sft_HanhChinhHuyen = sft_HanhChinhHuyen;
     }
 
-    //  features hanh chinh
+    //  feature hanh chinh
     private HashMap<String, String> hashMapHuyenTP;
     private ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList;
 

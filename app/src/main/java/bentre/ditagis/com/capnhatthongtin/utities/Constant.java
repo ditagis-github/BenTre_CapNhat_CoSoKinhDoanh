@@ -24,9 +24,10 @@ public class Constant {
 
     public static class HanhChinhFields {
         public static final String tenxa = "tenxa";
-        public static final String maxa = "maxa";
+        public static final String maxa = "MaPhuongXa";
         public static final String tenhuyen = "tenhuyen";
-        public static final String mahuyen = "mahuyen";
+        public static final String maquanhuyen = "MaQuanHuyen";
+        public static final String mahuyentp = "MaHuyenTP";
     }
 
     //    public static class CSKDLayerFields {
@@ -48,7 +49,16 @@ public class Constant {
         public static final String GhiChu = "GhiChu";
         public static final String NguoiTao = "NguoiTao";
     }
-
+    public static class SearchFields {
+        public static final String MaKinhDoanh = "MaCSKD";
+        public static final String MaPhuongXa = "MaPhuongXa";
+        public static final String MaHuyenTP = "MaHuyenTP";
+        public static final String TenDoanhNghiep = "TenCSKD";
+        public static final String DiaChi = "DiaChi";
+        public static final String DienThoai = "SoDienThoai";
+        public static final String GhiChu = "GhiChu";
+        public static final String NguoiTao = "NguoiTao";
+    }
     public static class CSKDTableFields {
         public static final String MaKinhDoanh = "MaKinhDoanh";
         public static final String MaPhuongXa = "MaPhuongXa";

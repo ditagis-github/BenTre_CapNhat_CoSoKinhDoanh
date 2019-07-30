@@ -40,6 +40,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -320,20 +321,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mFloatButtonLocation.setOnClickListener(this);
 
         cb_Layer_HanhChinh = findViewById(R.id.cb_Layer_HanhChinh);
-        cb_Layer_HanhChinh.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                for (int i = 0; i < mLinnearDisplayLayerBaseMap.getChildCount(); i++) {
-                    View view = mLinnearDisplayLayerBaseMap.getChildAt(i);
-                    if (view instanceof CheckBox) {
-                        CheckBox checkBox = (CheckBox) view;
-                        if (isChecked) checkBox.setChecked(true);
-                        else checkBox.setChecked(false);
-                    }
+        cb_Layer_HanhChinh.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            for (int i = 0; i < mLinnearDisplayLayerBaseMap.getChildCount(); i++) {
+                View view = mLinnearDisplayLayerBaseMap.getChildAt(i);
+                if (view instanceof CheckBox) {
+                    CheckBox checkBox = (CheckBox) view;
+                    if (isChecked) checkBox.setChecked(true);
+                    else checkBox.setChecked(false);
                 }
             }
+        });
+        SeekBar skbr_basemap = findViewById(R.id.skbr_basemap);
+        skbr_basemap.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                hanhChinhImageLayers.setOpacity((float) i / 100);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
 
-
+            }
         });
     }
 

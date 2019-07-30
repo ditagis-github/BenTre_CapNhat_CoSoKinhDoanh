@@ -176,6 +176,7 @@ public class Popup extends AppCompatActivity {
             }
         });
         String[] updateFields = featureLayerDTG.getUpdateFields();
+        String[] uneditFields = mainActivity.getResources().getStringArray(R.array.uneditFields);
         String typeIdField = mSelectedArcGISFeature.getFeatureTable().getTypeIdField();
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attr.get(field.getName());
@@ -217,6 +218,12 @@ public class Popup extends AppCompatActivity {
                             item.setEdit(true);
                             break;
                         }
+                    }
+                }
+                for (String uneditField : uneditFields) {
+                    if (item.getFieldName().equals(uneditField)) {
+                        item.setEdit(false);
+                        break;
                     }
                 }
             }

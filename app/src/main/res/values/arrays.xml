@@ -10,4 +10,20 @@
         <item>Chưa xử lý</item>
         <item>Đã xử lý</item>
     </string-array>
+    <string-array name="searchFields">
+        <item>OBJECTID</item>
+        <item>TenCSKD</item>
+        <item>DiaChi</item>
+        <item>MaCSKD</item>
+        <item>NguoiDaiDien</item>
+        <item>ChuSoHuu</item>
+        <item>NguoiCapNhat</item>
+        <item>NguoiTao</item>
+    </string-array>
+    <string-array name="uneditFields">
+        <item>OBJECTID</item>
+        <item>MaHuyenTP</item>
+        <item>MaPhuongXa</item>
+        <item>TGCapNhat</item>
+    </string-array>
 </resources>
