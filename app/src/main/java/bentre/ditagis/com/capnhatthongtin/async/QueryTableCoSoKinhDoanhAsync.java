@@ -64,6 +64,7 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
         final List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
         final List<Feature> features = new ArrayList<>();
         QueryParameters queryParameters = new QueryParameters();
+
         String queryClause = params[0];
         queryParameters.setWhereClause(queryClause);
         queryParameters.setMaxFeatures(100);
