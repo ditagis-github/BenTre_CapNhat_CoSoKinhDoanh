@@ -82,10 +82,10 @@ import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.ListObjectDB;
 import bentre.ditagis.com.capnhatthongtin.libs.Action;
 import bentre.ditagis.com.capnhatthongtin.libs.FeatureLayerDTG;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
+import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.CheckConnectInternet;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 import bentre.ditagis.com.capnhatthongtin.utities.LocationHelper;
-import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
 
@@ -206,11 +206,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ListView listViewSearchLayer = findViewById(R.id.lstview_search_layer);
         //đưa listview search ra phía sau
         listViewSearchLayer.invalidate();
-        List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
+        List<Feature> items = new ArrayList<>();
         this.coSoKinhDoanhAdapter = new TableCoSoKinhDoanhAdapter(MainActivity.this, items);
         listViewSearchLayer.setAdapter(coSoKinhDoanhAdapter);
         listViewSearchLayer.setOnItemClickListener((parent, view, position, id) -> {
-            String objectID = ((TableCoSoKinhDoanhAdapter.Item) parent.getItemAtPosition(position)).getObjectID();
+            String objectID = ((Feature) parent.getItemAtPosition(position)).getAttributes().get(Constant.OBJECTID).toString();
             mMapViewHandler.queryByObjectID(objectID);
             coSoKinhDoanhAdapter.clear();
             coSoKinhDoanhAdapter.notifyDataSetChanged();

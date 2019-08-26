@@ -3,13 +3,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.ditagis.bentre.capnhatthongtin"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 5
-        versionName "1.0.5"
+        versionCode 6
+        versionName "1.0.5-beta-1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     repositories {

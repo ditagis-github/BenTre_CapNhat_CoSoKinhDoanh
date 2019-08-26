@@ -12,34 +12,34 @@ import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.TraCuuActivity;
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
-import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
 /**
  * Created by ThanLe on 4/16/2018.
  */
 
-public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCoSoKinhDoanhAdapter.Item>, Void> {
+public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<Feature>, Void> {
     private ProgressDialog dialog;
     private Context mContext;
     private ServiceFeatureTable serviceFeatureTable;
     private TableCoSoKinhDoanhAdapter tableCoSoKinhDoanhAdapter;
     private TextView txtTongItem;
+    private int mTop = 100;
 
-    public QueryTableCoSoKinhDoanhAsync(TraCuuActivity traCuuActivity, ServiceFeatureTable serviceFeatureTable, TextView txtTongItem, TableCoSoKinhDoanhAdapter adapter, AsyncResponse asyncResponse) {
+    public QueryTableCoSoKinhDoanhAsync(TraCuuActivity traCuuActivity, ServiceFeatureTable serviceFeatureTable, TextView txtTongItem, TableCoSoKinhDoanhAdapter adapter, AsyncResponse asyncResponse,
+                                        int... top) {
         this.delegate = asyncResponse;
         mContext = traCuuActivity;
         this.serviceFeatureTable = serviceFeatureTable;
         this.tableCoSoKinhDoanhAdapter = adapter;
         this.txtTongItem = txtTongItem;
         dialog = new ProgressDialog(traCuuActivity, android.R.style.Theme_Material_Dialog_Alert);
+        if (top.length > 0 && top[0] != 0)
+            mTop = top[0];
     }
 
 
@@ -61,13 +61,13 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
 
     @Override
     protected Void doInBackground(String... params) {
-        final List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
-        final List<Feature> features = new ArrayList<>();
+        final List<Feature> items = new ArrayList<>();
         QueryParameters queryParameters = new QueryParameters();
 
         String queryClause = params[0];
         queryParameters.setWhereClause(queryClause);
-        queryParameters.setMaxFeatures(100);
+
+        queryParameters.setMaxFeatures(mTop);
         QueryParameters.OrderBy orderBy = new QueryParameters.OrderBy("TGCapNhat", QueryParameters.SortOrder.DESCENDING);
         queryParameters.getOrderByFields().add(orderBy);
         final ListenableFuture<FeatureQueryResult> queryResultListenableFuture = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
@@ -76,28 +76,15 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
             public void run() {
                 try {
                     FeatureQueryResult result = queryResultListenableFuture.get();
-                    Iterator iterator = result.iterator();
 
-                    while (iterator.hasNext()) {
-                        Feature feature = (Feature) iterator.next();
-                        TableCoSoKinhDoanhAdapter.Item item = new TableCoSoKinhDoanhAdapter.Item();
-                        Map<String, Object> attributes = feature.getAttributes();
-                        item.setObjectID(attributes.get(Constant.OBJECTID).toString());
-                        item.setMaKinhDoanh(attributes.get(Constant.CSKDTableFields.MaKinhDoanh).toString());
-                        item.setTenDoanhNghiep(attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
-                        item.setToaDoX(attributes.get(Constant.CSKDTableFields.X).toString());
-                        item.setToaDoY(attributes.get(Constant.CSKDTableFields.Y).toString());
-                        item.setDiaChi(attributes.get(Constant.CSKDTableFields.DiaChi).toString());
-                        items.add(item);
-                        features.add(feature);
+                    for (Object feature : result) {
+                        if (feature instanceof Feature)
+                            items.add((Feature) feature);
                     }
-                    delegate.processFinish(features);
                     publishProgress(items);
 
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    publishProgress();
                 }
             }
         });
@@ -105,13 +92,16 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
     }
 
     @Override
-    protected void onProgressUpdate(List<TableCoSoKinhDoanhAdapter.Item>... values) {
+    protected void onProgressUpdate(List<Feature>... values) {
+        if (dialog != null || dialog.isShowing()) dialog.dismiss();
         tableCoSoKinhDoanhAdapter.clear();
-        tableCoSoKinhDoanhAdapter.setItems(values[0]);
+        if (values != null && values.length > 0) {
+            tableCoSoKinhDoanhAdapter.setItems(values[0]);
+            if (txtTongItem != null)
+                txtTongItem.setText(mContext.getString(R.string.nav_tongsoluong) + values[0].size());
+        }
         tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
-        if (txtTongItem != null)
-            txtTongItem.setText(mContext.getString(R.string.nav_tongsoluong) + values[0].size());
-        if (dialog != null && dialog.isShowing()) dialog.dismiss();
+
         super.onProgressUpdate(values);
 
     }
@@ -124,7 +114,7 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<TableCo
 
     @Override
     protected void onPostExecute(Void result) {
-        if (dialog != null || dialog.isShowing()) dialog.dismiss();
+
         super.onPostExecute(result);
 
     }

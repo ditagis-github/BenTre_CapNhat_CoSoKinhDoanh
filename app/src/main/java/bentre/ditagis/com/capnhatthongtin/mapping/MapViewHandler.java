@@ -2,8 +2,8 @@ package bentre.ditagis.com.capnhatthongtin.mapping;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.ArcGISFeature;
@@ -17,7 +17,6 @@ import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
-import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.MapView;
 
@@ -31,9 +30,9 @@ import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.adapter.DiaChiAdapter;
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
+import bentre.ditagis.com.capnhatthongtin.async.AddFeatureAsync;
 import bentre.ditagis.com.capnhatthongtin.async.EditFeatureAsync;
 import bentre.ditagis.com.capnhatthongtin.async.FindLocationAsycn;
-import bentre.ditagis.com.capnhatthongtin.async.AddFeatureAsync;
 import bentre.ditagis.com.capnhatthongtin.async.SingleTapMapViewAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.entities.DAddress;
@@ -149,23 +148,32 @@ public class MapViewHandler extends Activity {
             }
         });
     }
-    public void queryByMaKinhDoanh(TableCoSoKinhDoanhAdapter.Item item) {
-        final QueryParameters queryParameters = new QueryParameters();
-        StringBuilder builder = new StringBuilder();
-        builder.append(Constant.CSKDLayerFields.MaKinhDoanh + " like N'%" + item.getMaKinhDoanh() + "%'");
-        queryParameters.setWhereClause(builder.toString());
-        queryParameters.setReturnGeometry(true);
-        queryFeaturesAsync(queryParameters,item);
+
+    public void queryByMaKinhDoanh(Feature item) {
+        Object maKinhDoanh = item.getAttributes().get(Constant.CSKDTableFields.MaKinhDoanh);
+        if (maKinhDoanh != null) {
+            final QueryParameters queryParameters = new QueryParameters();
+            StringBuilder builder = new StringBuilder();
+            builder.append(Constant.CSKDLayerFields.MaKinhDoanh + " like N'%" + maKinhDoanh.toString() + "%'");
+            queryParameters.setWhereClause(builder.toString());
+            queryParameters.setReturnGeometry(true);
+            queryFeaturesAsync(queryParameters, item);
+        } else {
+            Toast.makeText(mainActivity, "Không có mã kinh doanh", Toast.LENGTH_SHORT).show();
+        }
     }
-    private void queryFeaturesAsync(QueryParameters queryParameters,TableCoSoKinhDoanhAdapter.Item item) {
+
+    private void queryFeaturesAsync(QueryParameters queryParameters, Feature item) {
         final ListenableFuture<FeatureQueryResult> feature = sft_CSKDLayer.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
                 FeatureQueryResult result = feature.get();
+                Object x = item.getAttributes().get(Constant.CSKDTableFields.X);
+                Object y = item.getAttributes().get(Constant.CSKDTableFields.Y);
                 if (result.iterator().hasNext()) {
                     Feature next = result.iterator().next();
                     popupInfos.showPopup((ArcGISFeature) next);
-                    if (item.getToaDoX().equals("") || item.getToaDoY().equals("")) {
+                    if (x == null || y == null || x.equals("") || y.equals("")) {
                         AlertDialog alertDialog = new AlertDialog.Builder(mainActivity)
                                 .setTitle("Thông báo")
                                 .setMessage("CSKD đã có!")
@@ -178,7 +186,7 @@ public class MapViewHandler extends Activity {
                                         updateCSKDTable(logLat);
                                     }
                                     dialog.dismiss();
-                                })
+                                }).setCancelable(false)
                                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
                                 .create();
                         alertDialog.show();
@@ -186,7 +194,7 @@ public class MapViewHandler extends Activity {
 
                 }
                 else {
-                    if (item.getToaDoX().equals("") || item.getToaDoY().equals("")) {
+                    if (x == null || y == null || x.equals("") || y.equals("")) {
                         this.mainActivity.addFeature();
                     }
                     else {
@@ -197,7 +205,7 @@ public class MapViewHandler extends Activity {
                                 .setPositiveButton("Thêm lại", (dialog, whichButton) -> {
                                     mainActivity.addFeature();
                                     dialog.dismiss();
-                                })
+                                }).setCancelable(false)
                                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
                                 .create();
                         alertDialog.show();
@@ -263,26 +271,15 @@ public class MapViewHandler extends Activity {
     }
 
     private void queryAsync(QueryParameters queryParameters, TableCoSoKinhDoanhAdapter adapter) {
-        final ListenableFuture<FeatureQueryResult> feature = sft_CSKDLayer.queryFeaturesAsync(queryParameters);
-        feature.addDoneListener(() -> {
+        final ListenableFuture<FeatureQueryResult> featureQueryResultListenableFuture
+                = sft_CSKDLayer.queryFeaturesAsync(queryParameters);
+        featureQueryResultListenableFuture.addDoneListener(() -> {
             try {
-                FeatureQueryResult result = feature.get();
+                FeatureQueryResult result = featureQueryResultListenableFuture.get();
                 Iterator iterator = result.iterator();
                 while (iterator.hasNext()) {
-                    Feature feature1 = (Feature) iterator.next();
-                    Map<String, Object> attributes = feature1.getAttributes();
-                    TableCoSoKinhDoanhAdapter.Item item = new TableCoSoKinhDoanhAdapter.Item();
-                    item.setObjectID(attributes.get(Constant.OBJECTID).toString());
-                    if (attributes.get(Constant.CSKDLayerFields.MaKinhDoanh) != null) {
-                        item.setMaKinhDoanh(attributes.get(Constant.CSKDLayerFields.MaKinhDoanh).toString());
-                    }
-                    if (attributes.get(Constant.CSKDLayerFields.TenDoanhNghiep) != null) {
-                        item.setTenDoanhNghiep(attributes.get(Constant.CSKDLayerFields.TenDoanhNghiep).toString());
-                    }
-                    if (attributes.get(Constant.CSKDLayerFields.DiaChi) != null) {
-                        item.setDiaChi(attributes.get(Constant.CSKDLayerFields.DiaChi).toString());
-                    }
-                    adapter.add(item);
+                    Feature feature = (Feature) iterator.next();
+                    adapter.add(feature);
                 }
                 if (adapter.getCount() > 0) {
                     adapter.notifyDataSetChanged();

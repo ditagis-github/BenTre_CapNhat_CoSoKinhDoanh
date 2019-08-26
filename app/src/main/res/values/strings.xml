@@ -11,6 +11,7 @@
     <!--DeclngayCapNhatalue config begin-->
     <!--Name-->
     <string name="layer_cosokinhdoanh">cosokinhdoanhLYR</string>
+    <!--<string name="layer_cosokinhdoanh">cskdLYR</string>-->
     <string name="table_cosokinhdoanh">cosochuacapnhatTBL</string>
     <!--DeclngayCapNhatalue config end-->
 

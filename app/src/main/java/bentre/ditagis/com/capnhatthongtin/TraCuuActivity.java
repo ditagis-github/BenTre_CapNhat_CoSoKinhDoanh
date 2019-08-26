@@ -1,7 +1,5 @@
 package bentre.ditagis.com.capnhatthongtin;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +8,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -67,6 +66,7 @@ public class TraCuuActivity extends AppCompatActivity {
         Spinner spinnerTrangThai = layout.findViewById(R.id.spin_edit_trangthai);
         Spinner spinnerHuyenTP = layout.findViewById(R.id.spin_edit_huyentp);
         Spinner spinnerPhuongXa = layout.findViewById(R.id.spin_edit_phuongxa);
+        EditText editTop = layout.findViewById(R.id.edit__tra_cuu__top);
         Button btnAcceptQuery = layout.findViewById(R.id.btn_AcceptQuery);
         ArrayList<String> phuongXaCodes = new ArrayList<>();
         ArrayList<String> huyenTPCodes = new ArrayList<>();
@@ -143,6 +143,7 @@ public class TraCuuActivity extends AppCompatActivity {
                         hanhChinhXa.setMaHuyenTP(maHuyenTP);
                     }
                 }
+                parameterQuery.setTop(Integer.parseInt(editTop.getText().toString()));
                 parameterQuery.setHanhChinhXa(hanhChinhXa);
                 if (trangThaiSelectedItem != null) {
                     parameterQuery.setTrangThai(trangThaiSelectedItem.toString());
@@ -224,7 +225,7 @@ public class TraCuuActivity extends AppCompatActivity {
                 }
             }
             if (parameterQuery.getTrangThai().equals(getString(R.string.TT_ChuaXuLi))) {
-                builder.append("(X = '' or Y = '')");
+                builder.append("(X = '' or Y = '' or X is null or Y is null)");
                 builder.append(" and ");
             } else if (parameterQuery.getTrangThai().equals("Đã xử lý")) {
                 builder.append(String.format("%s <> ''", Constant.CSKDTableFields.X));
@@ -237,23 +238,23 @@ public class TraCuuActivity extends AppCompatActivity {
         builder.append(" 1 = 1 ");
         queryParameters.setWhereClause(builder.toString());
         ListView listView = findViewById(R.id.listview);
-        final List<TableCoSoKinhDoanhAdapter.Item> items = new ArrayList<>();
+        final List<Feature> items = new ArrayList<>();
         final TableCoSoKinhDoanhAdapter adapter = new TableCoSoKinhDoanhAdapter(this, items);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((parent, view, position, id) -> {
-            TableCoSoKinhDoanhAdapter.Item item = adapter.getItems().get(position);
+            Feature item = adapter.getItems().get(position);
             getSelectedFeature(item);
             mDApplication.getMapViewHandler().queryByMaKinhDoanh(item);
             finish();
         });
         new QueryTableCoSoKinhDoanhAsync(this, serviceFeatureTable, txtTongItem, adapter, features -> {
-        }).execute(builder.toString());
+        }, parameterQuery.top).execute(builder.toString());
 
     }
 
-    public void getSelectedFeature(TableCoSoKinhDoanhAdapter.Item item) {
+    public void getSelectedFeature(Feature item) {
         final QueryParameters queryParameters = new QueryParameters();
-        final String query = "OBJECTID = " + item.getObjectID();
+        final String query = "OBJECTID = " + item.getAttributes().get(Constant.OBJECTID);
         queryParameters.setWhereClause(query);
         final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
@@ -275,6 +276,15 @@ public class TraCuuActivity extends AppCompatActivity {
     public class ParameterQuery {
         private MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa;
         private String trangThai;
+        private int top;
+
+        public int getTop() {
+            return top;
+        }
+
+        public void setTop(int top) {
+            this.top = top;
+        }
 
         public ParameterQuery() {
         }
