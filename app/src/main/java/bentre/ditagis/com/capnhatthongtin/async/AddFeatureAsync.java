@@ -42,7 +42,7 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         this.mainActivity = mainActivity;
         this.mapView = mapView;
         this.dApplication = (DApplication) mainActivity.getApplication();
-        this.sft_CSKDTable = (ServiceFeatureTable) this.dApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        this.sft_CSKDTable = (ServiceFeatureTable) this.dApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
         this.sft_CSKDLayer = (ServiceFeatureTable) this.dApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
 
         mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);

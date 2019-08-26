@@ -1,5 +1,6 @@
 package bentre.ditagis.com.capnhatthongtin;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -38,13 +39,13 @@ public class TraCuuActivity extends AppCompatActivity {
     private DApplication mDApplication;
     TextView diaDiemHuyen, diaDiemXa, trangThai;
     private ParameterQuery parameterQuery;
-
+    private Dialog mDialogQuery;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tra_cuu);
         mDApplication = (DApplication) getApplication();
-        serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
         this.txtTongItem = this.findViewById(R.id.txtTongItem);
         TraCuuActivity.this.findViewById(R.id.layout_tracuu).setOnClickListener(v -> showQueryDialog());
         diaDiemHuyen = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_huyen);
@@ -60,117 +61,121 @@ public class TraCuuActivity extends AppCompatActivity {
     }
 
     private void showQueryDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_Holo_Light_NoActionBar_Fullscreen);
-        View layout = getLayoutInflater().inflate(R.layout.layout_tracuu_theothuoctinh, null);
-        builder.setView(layout);
-        Spinner spinnerTrangThai = layout.findViewById(R.id.spin_edit_trangthai);
-        Spinner spinnerHuyenTP = layout.findViewById(R.id.spin_edit_huyentp);
-        Spinner spinnerPhuongXa = layout.findViewById(R.id.spin_edit_phuongxa);
-        EditText editTop = layout.findViewById(R.id.edit__tra_cuu__top);
-        Button btnAcceptQuery = layout.findViewById(R.id.btn_AcceptQuery);
-        ArrayList<String> phuongXaCodes = new ArrayList<>();
-        ArrayList<String> huyenTPCodes = new ArrayList<>();
-        HashMap<String, String> hashMapHuyenTP = mDApplication.getHashMapHuyenTP();
-        huyenTPCodes.add(getString(R.string.whole_province));
-        huyenTPCodes.add(getString(R.string.value_is_null));
-        for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
-            String value = entry.getValue();
-            huyenTPCodes.add(value);
-        }
-        ArrayAdapter<String> adapterHuyenTP = new ArrayAdapter<String>(layout.getContext(), android.R.layout.simple_list_item_1, huyenTPCodes);
-        spinnerHuyenTP.setAdapter(adapterHuyenTP);
-        ArrayAdapter<String> adapterPhuongXa = new ArrayAdapter<String>(layout.getContext(), android.R.layout.simple_list_item_1, phuongXaCodes);
-        spinnerPhuongXa.setAdapter(adapterPhuongXa);
-        spinnerHuyenTP.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                // your code here
-                Object itemAtPosition = spinnerHuyenTP.getItemAtPosition(position);
-                String tenHuyenTP = itemAtPosition.toString();
-                adapterPhuongXa.clear();
-                for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
-                    String value = entry.getValue();
-                    String code = entry.getKey();
-                    if (value.equals(tenHuyenTP)) {
-                        adapterPhuongXa.add(getString(R.string.all_district));
-                        adapterPhuongXa.add(getString(R.string.value_is_null));
-                        ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList = mDApplication.getHanhChinhXaList();
-                        if (hanhChinhXaList != null) {
-                            for (MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa : hanhChinhXaList) {
-                                if (code.equals(hanhChinhXa.getMaHuyenTP())) {
-                                    adapterPhuongXa.add(hanhChinhXa.getTenPhuongXa());
+        if (mDialogQuery != null)
+            mDialogQuery.show();
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_Holo_Light_NoActionBar_Fullscreen);
+            View layout = getLayoutInflater().inflate(R.layout.layout_tracuu_theothuoctinh, null);
+            builder.setView(layout);
+            Spinner spinnerTrangThai = layout.findViewById(R.id.spin_edit_trangthai);
+            Spinner spinnerHuyenTP = layout.findViewById(R.id.spin_edit_huyentp);
+            Spinner spinnerPhuongXa = layout.findViewById(R.id.spin_edit_phuongxa);
+            EditText editTop = layout.findViewById(R.id.edit__tra_cuu__top);
+            Button btnAcceptQuery = layout.findViewById(R.id.btn_AcceptQuery);
+            ArrayList<String> phuongXaCodes = new ArrayList<>();
+            ArrayList<String> huyenTPCodes = new ArrayList<>();
+            HashMap<String, String> hashMapHuyenTP = mDApplication.getHashMapHuyenTP();
+            huyenTPCodes.add(getString(R.string.whole_province));
+            huyenTPCodes.add(getString(R.string.value_is_null));
+            for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
+                String value = entry.getValue();
+                huyenTPCodes.add(value);
+            }
+            ArrayAdapter<String> adapterHuyenTP = new ArrayAdapter<String>(layout.getContext(), android.R.layout.simple_list_item_1, huyenTPCodes);
+            spinnerHuyenTP.setAdapter(adapterHuyenTP);
+            ArrayAdapter<String> adapterPhuongXa = new ArrayAdapter<String>(layout.getContext(), android.R.layout.simple_list_item_1, phuongXaCodes);
+            spinnerPhuongXa.setAdapter(adapterPhuongXa);
+            spinnerHuyenTP.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    // your code here
+                    Object itemAtPosition = spinnerHuyenTP.getItemAtPosition(position);
+                    String tenHuyenTP = itemAtPosition.toString();
+                    adapterPhuongXa.clear();
+                    for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
+                        String value = entry.getValue();
+                        String code = entry.getKey();
+                        if (value.equals(tenHuyenTP)) {
+                            adapterPhuongXa.add(getString(R.string.all_district));
+                            adapterPhuongXa.add(getString(R.string.value_is_null));
+                            ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList = mDApplication.getHanhChinhXaList();
+                            if (hanhChinhXaList != null) {
+                                for (MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa : hanhChinhXaList) {
+                                    if (code.equals(hanhChinhXa.getMaHuyenTP())) {
+                                        adapterPhuongXa.add(hanhChinhXa.getTenPhuongXa());
+                                    }
                                 }
                             }
+                            break;
                         }
-                        break;
+                    }
+                    if (parameterQuery.getHanhChinhXa() != null) {
+                        String selectValuePhuongXa = parameterQuery.getHanhChinhXa().getSelectValuePhuongXa();
+                        if (selectValuePhuongXa != null) {
+                            spinnerPhuongXa.setSelection(adapterPhuongXa.getPosition(selectValuePhuongXa));
+                        }
+                    }
+                    adapterPhuongXa.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                }
+
+            });
+            mDialogQuery = builder.create();
+            mDialogQuery.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            mDialogQuery.show();
+            btnAcceptQuery.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Object huyenTPSelectedItem = spinnerHuyenTP.getSelectedItem();
+                    Object phuongXaSelectedItem = spinnerPhuongXa.getSelectedItem();
+                    Object trangThaiSelectedItem = spinnerTrangThai.getSelectedItem();
+                    MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = new MapViewAddDoneLoadingListener.HanhChinhXa();
+                    if (phuongXaSelectedItem != null) {
+                        MapViewAddDoneLoadingListener.HanhChinhXa maHanhChinh = getMaHanhChinh(phuongXaSelectedItem.toString());
+                        if (maHanhChinh != null) {
+                            hanhChinhXa = maHanhChinh;
+                        }
+                        hanhChinhXa.setSelectValuePhuongXa(phuongXaSelectedItem.toString());
+                    }
+                    if (huyenTPSelectedItem != null) {
+                        hanhChinhXa.setSelectValueHuyenTP(huyenTPSelectedItem.toString());
+                        String maHuyenTP = getMaHuyenTP(huyenTPSelectedItem.toString());
+                        if (maHuyenTP != null) {
+                            hanhChinhXa.setMaHuyenTP(maHuyenTP);
+                        }
+                    }
+                    parameterQuery.setTop(Integer.parseInt(editTop.getText().toString()));
+                    parameterQuery.setHanhChinhXa(hanhChinhXa);
+                    if (trangThaiSelectedItem != null) {
+                        parameterQuery.setTrangThai(trangThaiSelectedItem.toString());
+                    }
+                    if (mDialogQuery.isShowing()) {
+                        queryFeatures();
+                    }
+                    mDialogQuery.dismiss();
+
+
+                }
+            });
+            if (parameterQuery != null) {
+                String trangThai = parameterQuery.getTrangThai();
+                if (trangThai != null) {
+                    SpinnerAdapter adapter = spinnerTrangThai.getAdapter();
+                    for (int i = 0; i < adapter.getCount(); i++) {
+                        if (adapter.getItem(i).toString().equals(trangThai)) {
+                            spinnerTrangThai.setSelection(i);
+                            break;
+                        }
                     }
                 }
                 if (parameterQuery.getHanhChinhXa() != null) {
-                    String selectValuePhuongXa = parameterQuery.getHanhChinhXa().getSelectValuePhuongXa();
-                    if (selectValuePhuongXa != null) {
-                        spinnerPhuongXa.setSelection(adapterPhuongXa.getPosition(selectValuePhuongXa));
+                    String selectValueHuyenTP = parameterQuery.getHanhChinhXa().getSelectValueHuyenTP();
+                    if (selectValueHuyenTP != null) {
+                        spinnerHuyenTP.setSelection(huyenTPCodes.indexOf(selectValueHuyenTP));
                     }
-                }
-                adapterPhuongXa.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-            }
-
-        });
-        final AlertDialog selectQueryDialog = builder.create();
-        selectQueryDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        selectQueryDialog.show();
-        btnAcceptQuery.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Object huyenTPSelectedItem = spinnerHuyenTP.getSelectedItem();
-                Object phuongXaSelectedItem = spinnerPhuongXa.getSelectedItem();
-                Object trangThaiSelectedItem = spinnerTrangThai.getSelectedItem();
-                MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = new MapViewAddDoneLoadingListener.HanhChinhXa();
-                if (phuongXaSelectedItem != null) {
-                    MapViewAddDoneLoadingListener.HanhChinhXa maHanhChinh = getMaHanhChinh(phuongXaSelectedItem.toString());
-                    if (maHanhChinh != null) {
-                        hanhChinhXa = maHanhChinh;
-                    }
-                    hanhChinhXa.setSelectValuePhuongXa(phuongXaSelectedItem.toString());
-                }
-                if (huyenTPSelectedItem != null) {
-                    hanhChinhXa.setSelectValueHuyenTP(huyenTPSelectedItem.toString());
-                    String maHuyenTP = getMaHuyenTP(huyenTPSelectedItem.toString());
-                    if (maHuyenTP != null) {
-                        hanhChinhXa.setMaHuyenTP(maHuyenTP);
-                    }
-                }
-                parameterQuery.setTop(Integer.parseInt(editTop.getText().toString()));
-                parameterQuery.setHanhChinhXa(hanhChinhXa);
-                if (trangThaiSelectedItem != null) {
-                    parameterQuery.setTrangThai(trangThaiSelectedItem.toString());
-                }
-                if (selectQueryDialog.isShowing()) {
-                    queryFeatures();
-                }
-                selectQueryDialog.dismiss();
-
-
-            }
-        });
-        if (parameterQuery != null) {
-            String trangThai = parameterQuery.getTrangThai();
-            if (trangThai != null) {
-                SpinnerAdapter adapter = spinnerTrangThai.getAdapter();
-                for (int i = 0; i < adapter.getCount(); i++) {
-                    if (adapter.getItem(i).toString().equals(trangThai)) {
-                        spinnerTrangThai.setSelection(i);
-                        break;
-                    }
-                }
-            }
-            if (parameterQuery.getHanhChinhXa() != null) {
-                String selectValueHuyenTP = parameterQuery.getHanhChinhXa().getSelectValueHuyenTP();
-                if (selectValueHuyenTP != null) {
-                    spinnerHuyenTP.setSelection(huyenTPCodes.indexOf(selectValueHuyenTP));
                 }
             }
         }

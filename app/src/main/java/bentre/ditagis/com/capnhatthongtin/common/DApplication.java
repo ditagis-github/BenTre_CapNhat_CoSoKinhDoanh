@@ -30,14 +30,14 @@ public class DApplication extends Application {
     }
 
     //   table and layer co so kinh doanh
-    private FeatureLayerDTG table_CoSoKinhDoanhDTG;
+    private FeatureLayerDTG table_CoSoKinhDoanhChuaCapNhatDTG;
 
-    public FeatureLayerDTG getTable_CoSoKinhDoanhDTG() {
-        return table_CoSoKinhDoanhDTG;
+    public FeatureLayerDTG getTable_CoSoKinhDoanhChuaCapNhatDTG() {
+        return table_CoSoKinhDoanhChuaCapNhatDTG;
     }
 
-    public void setTable_CoSoKinhDoanhDTG(FeatureLayerDTG table_CoSoKinhDoanhDTG) {
-        this.table_CoSoKinhDoanhDTG = table_CoSoKinhDoanhDTG;
+    public void setTable_CoSoKinhDoanhChuaCapNhatDTG(FeatureLayerDTG table_CoSoKinhDoanhChuaCapNhatDTG) {
+        this.table_CoSoKinhDoanhChuaCapNhatDTG = table_CoSoKinhDoanhChuaCapNhatDTG;
     }
 
     private FeatureLayerDTG layer_CoSoKinhDoanhDTG;

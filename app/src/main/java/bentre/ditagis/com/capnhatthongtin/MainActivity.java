@@ -382,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
             if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.table_cosokinhdoanh))) {
-                mApplication.setTable_CoSoKinhDoanhDTG(featureLayerDTG);
+                mApplication.setTable_CoSoKinhDoanhChuaCapNhatDTG(featureLayerDTG);
                 mFeatureLayerDTGS.add(featureLayerDTG);
             }
             if (layerInfoDTG.getId().toUpperCase().equals(getString(R.string.IDLayer_Basemap))) {

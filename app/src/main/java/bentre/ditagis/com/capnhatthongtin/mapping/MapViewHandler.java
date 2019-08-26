@@ -23,7 +23,6 @@ import com.esri.arcgisruntime.mapping.view.MapView;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
@@ -59,7 +58,7 @@ public class MapViewHandler extends Activity {
         this.mMapView = mMapView;
         this.mainActivity = mainActivity;
         this.mDApplication = (DApplication) mainActivity.getApplication();
-        this.sft_CSKDTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        this.sft_CSKDTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
         this.sft_CSKDLayer = (ServiceFeatureTable) mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
     }
 

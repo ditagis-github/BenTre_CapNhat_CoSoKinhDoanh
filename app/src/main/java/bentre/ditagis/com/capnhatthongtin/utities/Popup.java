@@ -43,7 +43,6 @@ import com.esri.arcgisruntime.mapping.view.MapView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -413,7 +412,7 @@ public class Popup extends AppCompatActivity {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("%s = '%s'", Constant.CSKDTableFields.MaKinhDoanh, maKinhDoanh));
         queryParameters.setWhereClause(builder.toString());
-        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
         final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
