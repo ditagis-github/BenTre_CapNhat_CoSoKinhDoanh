@@ -80,7 +80,7 @@ public class Popup extends AppCompatActivity {
         super.onCreate(savedInstanceState);
     }
 
-    private void refressPopup() {
+    private void refreshPopup() {
         Map<String, Object> attributes = mSelectedArcGISFeature.getAttributes();
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
             Object value = attributes.get(field.getName());
@@ -105,14 +105,14 @@ public class Popup extends AppCompatActivity {
         }
     }
 
-    public LinearLayout showPopup(final ArcGISFeature mSelectedArcGISFeature) {
+    public LinearLayout showPopup(final ArcGISFeature arcGISFeature) {
         dimissCallout();
-        this.mSelectedArcGISFeature = mSelectedArcGISFeature;
+        this.mSelectedArcGISFeature = arcGISFeature;
         FeatureLayer featureLayer = featureLayerDTG.getFeatureLayer();
-        featureLayer.selectFeature(mSelectedArcGISFeature);
+        featureLayer.selectFeature(arcGISFeature);
         lstFeatureType = new ArrayList<>();
-        for (int i = 0; i < mSelectedArcGISFeature.getFeatureTable().getFeatureTypes().size(); i++) {
-            lstFeatureType.add(mSelectedArcGISFeature.getFeatureTable().getFeatureTypes().get(i).getName());
+        for (int i = 0; i < arcGISFeature.getFeatureTable().getFeatureTypes().size(); i++) {
+            lstFeatureType.add(arcGISFeature.getFeatureTable().getFeatureTypes().get(i).getName());
         }
         LayoutInflater inflater = LayoutInflater.from(this.mainActivity.getApplicationContext());
         linearLayout = (LinearLayout) inflater.inflate(R.layout.popup, null);
@@ -121,27 +121,29 @@ public class Popup extends AppCompatActivity {
                     if (mCallout != null && mCallout.isShowing()) mCallout.dismiss();
                     featureLayer.clearSelection();
                 });
-        refressPopup();
-
-
+        refreshPopup();
+        Object nguoiTao = arcGISFeature.getAttributes().get(Constant.CSKDLayerFields.NguoiTao);
+        boolean isUserCreate = nguoiTao != null && nguoiTao.toString().equals(mDApplication.getUser().getUserName());
         if (featureLayerDTG.getAction().isEdit()) {
-            ImageButton imgBtn_ViewMoreInfo = linearLayout.findViewById(R.id.imgBtn_ViewMoreInfo);
+            if (isUserCreate) {
+                ImageButton imgBtn_ViewMoreInfo = linearLayout.findViewById(R.id.imgBtn_ViewMoreInfo);
             imgBtn_ViewMoreInfo.setVisibility(View.VISIBLE);
-            imgBtn_ViewMoreInfo.setOnClickListener(v -> viewMoreInfo());
+                imgBtn_ViewMoreInfo.setOnClickListener(v -> viewMoreInfo());
+            }
             ImageButton imgBtn_changeLocation = linearLayout.findViewById(R.id.imgBtn_changeLocation);
             imgBtn_changeLocation.setVisibility(View.VISIBLE);
             imgBtn_changeLocation.setOnClickListener(v -> changeLocation());
         }
-        if (featureLayerDTG.getAction().isDelete()) {
+        if (featureLayerDTG.getAction().isDelete() && isUserCreate) {
             ImageButton imgBtn_delete = linearLayout.findViewById(R.id.imgBtn_delete);
             imgBtn_delete.setVisibility(View.VISIBLE);
             imgBtn_delete.setOnClickListener(v -> {
-                mSelectedArcGISFeature.getFeatureTable().getFeatureLayer().clearSelection();
+                arcGISFeature.getFeatureTable().getFeatureLayer().clearSelection();
                 deleteFeature();
             });
         }
         linearLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        Envelope envelope = mSelectedArcGISFeature.getGeometry().getExtent();
+        Envelope envelope = arcGISFeature.getGeometry().getExtent();
         mMapView.setViewpointGeometryAsync(envelope, 0);
         // show CallOut
         mCallout.setLocation(envelope.getCenter());
@@ -251,7 +253,7 @@ public class Popup extends AppCompatActivity {
                 EditAsync editAsync = new EditAsync(mainActivity, layer_CoSoKinhDoanh, mSelectedArcGISFeature);
                 try {
                     editAsync.execute(adapter).get();
-                    refressPopup();
+                    refreshPopup();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {

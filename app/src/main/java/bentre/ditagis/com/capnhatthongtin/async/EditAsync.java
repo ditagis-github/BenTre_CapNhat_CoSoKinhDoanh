@@ -90,7 +90,7 @@ public class EditAsync extends AsyncTask<FeatureViewMoreInfoAdapter, Void, Void>
             }
         }
         Calendar currentTime = Calendar.getInstance();
-        mSelectedArcGISFeature.getAttributes().put(Constant.TGCAP_NHAT, currentTime);
+        mSelectedArcGISFeature.getAttributes().put(Constant.CSKDTableFields.TGCAP_NHAT, currentTime);
         mServiceFeatureTable.loadAsync();
         mServiceFeatureTable.addDoneLoadingListener(new Runnable() {
             @Override

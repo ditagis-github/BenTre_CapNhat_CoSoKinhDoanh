@@ -11,7 +11,7 @@ public class Constant {
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy");
     public static final SimpleDateFormat DDMMYYYY = new SimpleDateFormat("ddMMyyyy");
     public static final String OBJECTID = "OBJECTID";
-    public static final String TGCAP_NHAT = "TGCapNhat";
+
     private static final String SERVER_API = "http://qlkdbentre.ditagis.com/api";
 
     //    private static final String SERVER_API = "http://113.161.88.180:798/apiv1/api";
@@ -48,6 +48,9 @@ public class Constant {
         public static final String DienThoai = "SoDienThoai";
         public static final String GhiChu = "GhiChu";
         public static final String NguoiTao = "NguoiTao";
+        public static final String NGUOI_CAP_NHAT = "NguoiCapNhat";
+        public static final String TGCAP_NHAT = "TGCapNhat";
+        public static final String TG_TAO = "TGTao";
     }
     public static class SearchFields {
         public static final String MaKinhDoanh = "MaCSKD";
@@ -68,6 +71,7 @@ public class Constant {
         public static final String DienThoai = "DienThoai";
         public static final String X = "X";
         public static final String Y = "Y";
+        public static final String TGCAP_NHAT = "TGCapNhat";
     }
 
     public static class API_URL {

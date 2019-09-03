@@ -67,10 +67,9 @@ public class MapViewHandler extends Activity {
     }
 
     public void editFeature() {
-        EditFeatureAsync editFeatureAsync = new EditFeatureAsync(mainActivity, mMapView, () -> {
-        });
         Point editPoint = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
-        editFeatureAsync.execute(editPoint);
+        new EditFeatureAsync(mainActivity, mMapView, () -> {
+        }).execute(editPoint);
     }
 
     public void addFeature() {
@@ -92,7 +91,7 @@ public class MapViewHandler extends Activity {
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, toaDoX);
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, toaDoY);
         Calendar c = Calendar.getInstance();
-        selectedFeatureTBL.getAttributes().put(Constant.TGCAP_NHAT, c);
+        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.TGCAP_NHAT, c);
         ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
         mapViewResult.addDoneListener(() -> {
             final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();

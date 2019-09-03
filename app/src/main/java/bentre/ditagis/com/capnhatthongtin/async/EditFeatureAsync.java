@@ -107,7 +107,8 @@ public class EditFeatureAsync extends AsyncTask<Point, Void, Void> {
                             featureEdit.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, maHuyen);
                             featureEdit.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, maXa);
                             Calendar c = Calendar.getInstance();
-                            featureEdit.getAttributes().put(Constant.TGCAP_NHAT, c);
+                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.TGCAP_NHAT, c);
+                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.NGUOI_CAP_NHAT, dApplication.getUser().getUserName());
                             Object maKinhDoanh = featureEdit.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
                             if(maKinhDoanh != null){
                                 applyEditsAsync(featureEdit);

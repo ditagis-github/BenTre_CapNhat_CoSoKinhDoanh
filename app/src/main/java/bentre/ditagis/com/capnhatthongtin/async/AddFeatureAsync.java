@@ -95,7 +95,8 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         feature.getAttributes().put(Constant.CSKDLayerFields.TenDoanhNghiep, attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
         feature.getAttributes().put(Constant.CSKDLayerFields.DiaChi, attributes.get(Constant.CSKDTableFields.DiaChi).toString());
         feature.getAttributes().put(Constant.CSKDLayerFields.DienThoai, attributes.get(Constant.CSKDTableFields.DienThoai).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.NguoiTao, dApplication.getUser().getUserName().toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.NguoiTao, dApplication.getUser().getUserName());
+        feature.getAttributes().put(Constant.CSKDLayerFields.TG_TAO, Calendar.getInstance());
     }
 
     private void addFeatureAsync(Point clickPoint) {
@@ -117,8 +118,8 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
                             featureAdd.setGeometry(clickPoint);
                             featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, maHuyen);
                             featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, maXa);
-                            Calendar c = Calendar.getInstance();
-                            featureAdd.getAttributes().put(Constant.TGCAP_NHAT, c);
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.TGCAP_NHAT, Calendar.getInstance());
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.NGUOI_CAP_NHAT, dApplication.getUser().getUserName());
                             Feature featureTBL = dApplication.getSelectedFeatureTBL();
                             if (featureTBL != null) {
                                 double[] logLat = pointToLogLat(clickPoint);
@@ -217,7 +218,7 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, toaDoX);
         selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, toaDoY);
         Calendar c = Calendar.getInstance();
-        selectedFeatureTBL.getAttributes().put(Constant.TGCAP_NHAT, c);
+        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.TGCAP_NHAT, c);
         ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
         mapViewResult.addDoneListener(() -> {
             final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();
