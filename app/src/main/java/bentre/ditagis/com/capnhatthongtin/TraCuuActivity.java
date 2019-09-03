@@ -35,27 +35,27 @@ import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
 public class TraCuuActivity extends AppCompatActivity {
     private TextView txtTongItem;
-    private ServiceFeatureTable serviceFeatureTable;
+    private ServiceFeatureTable mServiceFeatureTable;
     private DApplication mDApplication;
-    TextView diaDiemHuyen, diaDiemXa, trangThai;
-    private ParameterQuery parameterQuery;
+    TextView txtDiaDiemHuyen, txtDiaDiemXa, txtTrangThai;
+    private ParameterQuery mParameterQuery;
     private Dialog mDialogQuery;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tra_cuu);
         mDApplication = (DApplication) getApplication();
-        serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
+        mServiceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
         this.txtTongItem = this.findViewById(R.id.txtTongItem);
         TraCuuActivity.this.findViewById(R.id.layout_tracuu).setOnClickListener(v -> showQueryDialog());
-        diaDiemHuyen = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_huyen);
-        diaDiemXa = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_xa);
-        trangThai = TraCuuActivity.this.findViewById(R.id.txt_tracuu_trangthai);
+        txtDiaDiemHuyen = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_huyen);
+        txtDiaDiemXa = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_xa);
+        txtTrangThai = TraCuuActivity.this.findViewById(R.id.txt_tracuu_trangthai);
         if (mDApplication.getParameterQuery() != null) {
-            parameterQuery = mDApplication.getParameterQuery();
+            mParameterQuery = mDApplication.getParameterQuery();
         } else {
-            parameterQuery = new ParameterQuery();
-            parameterQuery.setTrangThai(getString(R.string.TT_ChuaXuLi));
+            mParameterQuery = new ParameterQuery();
+            mParameterQuery.setTrangThai(getString(R.string.TT_ChuaXuLi));
         }
         queryFeatures();
     }
@@ -98,9 +98,9 @@ public class TraCuuActivity extends AppCompatActivity {
                         if (value.equals(tenHuyenTP)) {
                             adapterPhuongXa.add(getString(R.string.all_district));
                             adapterPhuongXa.add(getString(R.string.value_is_null));
-                            ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList = mDApplication.getHanhChinhXaList();
+                            ArrayList<MapViewAddDoneLoadingListener.HanhChinh> hanhChinhXaList = mDApplication.getHanhChinhXaList();
                             if (hanhChinhXaList != null) {
-                                for (MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa : hanhChinhXaList) {
+                                for (MapViewAddDoneLoadingListener.HanhChinh hanhChinhXa : hanhChinhXaList) {
                                     if (code.equals(hanhChinhXa.getMaHuyenTP())) {
                                         adapterPhuongXa.add(hanhChinhXa.getTenPhuongXa());
                                     }
@@ -109,8 +109,8 @@ public class TraCuuActivity extends AppCompatActivity {
                             break;
                         }
                     }
-                    if (parameterQuery.getHanhChinhXa() != null) {
-                        String selectValuePhuongXa = parameterQuery.getHanhChinhXa().getSelectValuePhuongXa();
+                    if (mParameterQuery.getHanhChinhXa() != null) {
+                        String selectValuePhuongXa = mParameterQuery.getHanhChinhXa().getMaPhuongXa();
                         if (selectValuePhuongXa != null) {
                             spinnerPhuongXa.setSelection(adapterPhuongXa.getPosition(selectValuePhuongXa));
                         }
@@ -132,25 +132,27 @@ public class TraCuuActivity extends AppCompatActivity {
                     Object huyenTPSelectedItem = spinnerHuyenTP.getSelectedItem();
                     Object phuongXaSelectedItem = spinnerPhuongXa.getSelectedItem();
                     Object trangThaiSelectedItem = spinnerTrangThai.getSelectedItem();
-                    MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = new MapViewAddDoneLoadingListener.HanhChinhXa();
-                    if (phuongXaSelectedItem != null) {
-                        MapViewAddDoneLoadingListener.HanhChinhXa maHanhChinh = getMaHanhChinh(phuongXaSelectedItem.toString());
-                        if (maHanhChinh != null) {
-                            hanhChinhXa = maHanhChinh;
-                        }
-                        hanhChinhXa.setSelectValuePhuongXa(phuongXaSelectedItem.toString());
-                    }
+                    MapViewAddDoneLoadingListener.HanhChinh hanhChinh = new MapViewAddDoneLoadingListener.HanhChinh();
                     if (huyenTPSelectedItem != null) {
-                        hanhChinhXa.setSelectValueHuyenTP(huyenTPSelectedItem.toString());
                         String maHuyenTP = getMaHuyenTP(huyenTPSelectedItem.toString());
                         if (maHuyenTP != null) {
-                            hanhChinhXa.setMaHuyenTP(maHuyenTP);
+                            hanhChinh.setMaHuyenTP(maHuyenTP);
+                        }
+                        hanhChinh.setTenHuyenTP(huyenTPSelectedItem.toString());
+                        if (phuongXaSelectedItem != null) {
+                            String maPhuongXa = getMaPhuongXa(phuongXaSelectedItem.toString(), maHuyenTP);
+                            if (maPhuongXa != null) {
+                                hanhChinh.setMaPhuongXa(maPhuongXa);
+                            }
+                            hanhChinh.setTenPhuongXa(phuongXaSelectedItem.toString());
                         }
                     }
-                    parameterQuery.setTop(Integer.parseInt(editTop.getText().toString()));
-                    parameterQuery.setHanhChinhXa(hanhChinhXa);
+
+
+                    mParameterQuery.setTop(Integer.parseInt(editTop.getText().toString()));
+                    mParameterQuery.setHanhChinhXa(hanhChinh);
                     if (trangThaiSelectedItem != null) {
-                        parameterQuery.setTrangThai(trangThaiSelectedItem.toString());
+                        mParameterQuery.setTrangThai(trangThaiSelectedItem.toString());
                     }
                     if (mDialogQuery.isShowing()) {
                         queryFeatures();
@@ -160,8 +162,8 @@ public class TraCuuActivity extends AppCompatActivity {
 
                 }
             });
-            if (parameterQuery != null) {
-                String trangThai = parameterQuery.getTrangThai();
+            if (mParameterQuery != null) {
+                String trangThai = mParameterQuery.getTrangThai();
                 if (trangThai != null) {
                     SpinnerAdapter adapter = spinnerTrangThai.getAdapter();
                     for (int i = 0; i < adapter.getCount(); i++) {
@@ -171,8 +173,8 @@ public class TraCuuActivity extends AppCompatActivity {
                         }
                     }
                 }
-                if (parameterQuery.getHanhChinhXa() != null) {
-                    String selectValueHuyenTP = parameterQuery.getHanhChinhXa().getSelectValueHuyenTP();
+                if (mParameterQuery.getHanhChinhXa() != null) {
+                    String selectValueHuyenTP = mParameterQuery.getHanhChinhXa().getMaHuyenTP();
                     if (selectValueHuyenTP != null) {
                         spinnerHuyenTP.setSelection(huyenTPCodes.indexOf(selectValueHuyenTP));
                     }
@@ -193,52 +195,52 @@ public class TraCuuActivity extends AppCompatActivity {
         return null;
     }
 
-    private MapViewAddDoneLoadingListener.HanhChinhXa getMaHanhChinh(String tenPhuongXa) {
-        ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList = mDApplication.getHanhChinhXaList();
-        for (MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa : hanhChinhXaList) {
-            if (tenPhuongXa.equals(hanhChinhXa.getTenPhuongXa())) {
-                return hanhChinhXa;
+    private String getMaPhuongXa(String tenPhuongXa, String maHuyenTP) {
+        ArrayList<MapViewAddDoneLoadingListener.HanhChinh> hanhChinhXaList = mDApplication.getHanhChinhXaList();
+        for (MapViewAddDoneLoadingListener.HanhChinh hanhChinhXa : hanhChinhXaList) {
+            if (hanhChinhXa.getMaHuyenTP().equals(maHuyenTP) && hanhChinhXa.getTenPhuongXa().equals(tenPhuongXa)) {
+                return hanhChinhXa.getMaPhuongXa();
             }
         }
         return null;
     }
 
     private void queryFeatures() {
-        mDApplication.setParameterQuery(parameterQuery);
+        mDApplication.setParameterQuery(mParameterQuery);
         StringBuilder builder = new StringBuilder();
         QueryParameters queryParameters = new QueryParameters();
-        if (parameterQuery != null) {
-            MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa = parameterQuery.getHanhChinhXa();
-            if (hanhChinhXa != null) {
-                diaDiemHuyen.setText(hanhChinhXa.getSelectValueHuyenTP());
-                if (hanhChinhXa.getSelectValueHuyenTP().equals(getString(R.string.value_is_null))) {
+        if (mParameterQuery != null) {
+            MapViewAddDoneLoadingListener.HanhChinh hanhChinh = mParameterQuery.getHanhChinhXa();
+            if (hanhChinh != null) {
+                txtDiaDiemHuyen.setText(hanhChinh.getTenHuyenTP());
+                if (hanhChinh.getTenHuyenTP().equals(TraCuuActivity.this.getString(R.string.value_is_null))) {
                     builder.append(String.format("%s is null", Constant.CSKDTableFields.MaHuyenTP));
                     builder.append(" and ");
-                } else if (hanhChinhXa.getMaHuyenTP() != null) {
-                    builder.append(String.format("%s = %s", Constant.CSKDTableFields.MaHuyenTP, hanhChinhXa.getMaHuyenTP()));
+                } else if (hanhChinh.getMaHuyenTP() != null) {
+                    builder.append(String.format("%s = %s", Constant.CSKDTableFields.MaHuyenTP, hanhChinh.getMaHuyenTP()));
                     builder.append(" and ");
                 }
-                if (hanhChinhXa.getSelectValuePhuongXa() != null) {
-                    diaDiemXa.setText(hanhChinhXa.getSelectValuePhuongXa());
-                    if (hanhChinhXa.getSelectValuePhuongXa().equals(getString(R.string.value_is_null))) {
+                if (hanhChinh.getMaPhuongXa() != null) {
+                    txtDiaDiemXa.setText(hanhChinh.getTenPhuongXa());
+                    if (hanhChinh.getMaPhuongXa() .equals(TraCuuActivity.this.getString(R.string.value_is_null))) {
                         builder.append(String.format("%s is null", Constant.CSKDTableFields.MaPhuongXa));
                         builder.append(" and ");
-                    } else if (hanhChinhXa.getMaPhuongXa() != null) {
-                        builder.append(String.format("%s = %s", Constant.CSKDTableFields.MaPhuongXa, hanhChinhXa.getMaPhuongXa()));
+                    } else if (hanhChinh.getMaPhuongXa() != null) {
+                        builder.append(String.format("%s = %s", Constant.CSKDTableFields.MaPhuongXa, hanhChinh.getMaPhuongXa()));
                         builder.append(" and ");
                     }
                 }
             }
-            if (parameterQuery.getTrangThai().equals(getString(R.string.TT_ChuaXuLi))) {
+            if (mParameterQuery.getTrangThai().equals(getString(R.string.TT_ChuaXuLi))) {
                 builder.append("(X = '' or Y = '' or X is null or Y is null)");
                 builder.append(" and ");
-            } else if (parameterQuery.getTrangThai().equals("Đã xử lý")) {
+            } else if (mParameterQuery.getTrangThai().equals("Đã xử lý")) {
                 builder.append(String.format("%s <> ''", Constant.CSKDTableFields.X));
                 builder.append(" and ");
                 builder.append(String.format("%s <> ''", Constant.CSKDTableFields.Y));
                 builder.append(" and ");
             }
-            trangThai.setText(parameterQuery.getTrangThai());
+            txtTrangThai.setText(mParameterQuery.getTrangThai());
         }
         builder.append(" 1 = 1 ");
         queryParameters.setWhereClause(builder.toString());
@@ -252,8 +254,8 @@ public class TraCuuActivity extends AppCompatActivity {
             mDApplication.getMapViewHandler().queryByMaKinhDoanh(item);
             finish();
         });
-        new QueryTableCoSoKinhDoanhAsync(this, serviceFeatureTable, txtTongItem, adapter, features -> {
-        }, parameterQuery.top).execute(builder.toString());
+        new QueryTableCoSoKinhDoanhAsync(this, mServiceFeatureTable, txtTongItem, adapter, features -> {
+        }, mParameterQuery.top).execute(builder.toString());
 
     }
 
@@ -261,7 +263,7 @@ public class TraCuuActivity extends AppCompatActivity {
         final QueryParameters queryParameters = new QueryParameters();
         final String query = "OBJECTID = " + item.getAttributes().get(Constant.OBJECTID);
         queryParameters.setWhereClause(query);
-        final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
+        final ListenableFuture<FeatureQueryResult> feature = mServiceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
                 FeatureQueryResult result = feature.get();
@@ -279,7 +281,7 @@ public class TraCuuActivity extends AppCompatActivity {
     }
 
     public class ParameterQuery {
-        private MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa;
+        private MapViewAddDoneLoadingListener.HanhChinh hanhChinhXa;
         private String trangThai;
         private int top;
 
@@ -294,7 +296,7 @@ public class TraCuuActivity extends AppCompatActivity {
         public ParameterQuery() {
         }
 
-        public MapViewAddDoneLoadingListener.HanhChinhXa getHanhChinhXa() {
+        public MapViewAddDoneLoadingListener.HanhChinh getHanhChinhXa() {
             return hanhChinhXa;
         }
 
@@ -302,7 +304,7 @@ public class TraCuuActivity extends AppCompatActivity {
             return trangThai;
         }
 
-        public void setHanhChinhXa(MapViewAddDoneLoadingListener.HanhChinhXa hanhChinhXa) {
+        public void setHanhChinhXa(MapViewAddDoneLoadingListener.HanhChinh hanhChinhXa) {
             this.hanhChinhXa = hanhChinhXa;
         }
 

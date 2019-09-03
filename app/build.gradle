@@ -8,8 +8,8 @@ android {
         applicationId "com.ditagis.bentre.capnhatthongtin"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 7
-        versionName "1.0.5-beta-2"
+        versionCode 8
+        versionName "1.0.5-beta-3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     repositories {

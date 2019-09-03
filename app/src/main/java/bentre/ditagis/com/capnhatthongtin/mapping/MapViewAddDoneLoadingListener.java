@@ -20,7 +20,7 @@ public class MapViewAddDoneLoadingListener {
 
     public void getHanhChinh() {
         HashMap<String, String> hashMapHuyenTP = new HashMap<>();
-        ArrayList<HanhChinhXa> hanhChinhXaList = new ArrayList<>();
+        ArrayList<HanhChinh> hanhChinhXaList = new ArrayList<>();
         new QueryHanhChinhsAsync(mMainActivity, this.mDApplication.getSft_HanhChinhHuyen(), output -> {
             for (Feature feature : output) {
                 String tenHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.tenhuyen).toString();
@@ -34,21 +34,21 @@ public class MapViewAddDoneLoadingListener {
                 String tenPhuongXa = feature.getAttributes().get(Constant.HanhChinhFields.tenxa).toString();
                 String maPhuongXa = feature.getAttributes().get(Constant.HanhChinhFields.maxa).toString();
                 String maHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.mahuyentp).toString();
-                HanhChinhXa hanhChinhXa = new HanhChinhXa(tenPhuongXa,maPhuongXa,maHuyenTP);
+                HanhChinh hanhChinhXa = new HanhChinh(tenPhuongXa,maPhuongXa,maHuyenTP);
                 hanhChinhXaList.add(hanhChinhXa);
             }
             mDApplication.setHanhChinhXaList(hanhChinhXaList);
         }).execute();
     }
-    public static class HanhChinhXa{
+    public static class HanhChinh {
         private String tenPhuongXa;
         private String maPhuongXa;
         private String maHuyenTP;
-        private String selectValuePhuongXa;
-        private String selectValueHuyenTP;
-        public HanhChinhXa() {
+        private String tenHuyenTP;
+        public HanhChinh() {
         }
-        public HanhChinhXa(String tenPhuongXa, String maPhuongXa, String maHuyenTP) {
+
+        public HanhChinh(String tenPhuongXa, String maPhuongXa, String maHuyenTP) {
             this.tenPhuongXa = tenPhuongXa;
             this.maPhuongXa = maPhuongXa;
             this.maHuyenTP = maHuyenTP;
@@ -58,8 +58,16 @@ public class MapViewAddDoneLoadingListener {
             return tenPhuongXa;
         }
 
+        public void setTenPhuongXa(String tenPhuongXa) {
+            this.tenPhuongXa = tenPhuongXa;
+        }
+
         public String getMaPhuongXa() {
             return maPhuongXa;
+        }
+
+        public void setMaPhuongXa(String maPhuongXa) {
+            this.maPhuongXa = maPhuongXa;
         }
 
         public String getMaHuyenTP() {
@@ -70,28 +78,12 @@ public class MapViewAddDoneLoadingListener {
             this.maHuyenTP = maHuyenTP;
         }
 
-        public void setTenPhuongXa(String tenPhuongXa) {
-            this.tenPhuongXa = tenPhuongXa;
+        public String getTenHuyenTP() {
+            return tenHuyenTP;
         }
 
-        public void setMaPhuongXa(String maPhuongXa) {
-            this.maPhuongXa = maPhuongXa;
-        }
-
-        public String getSelectValuePhuongXa() {
-            return selectValuePhuongXa;
-        }
-
-        public void setSelectValuePhuongXa(String selectValuePhuongXa) {
-            this.selectValuePhuongXa = selectValuePhuongXa;
-        }
-
-        public String getSelectValueHuyenTP() {
-            return selectValueHuyenTP;
-        }
-
-        public void setSelectValueHuyenTP(String selectValueHuyenTP) {
-            this.selectValueHuyenTP = selectValueHuyenTP;
+        public void setTenHuyenTP(String tenHuyenTP) {
+            this.tenHuyenTP = tenHuyenTP;
         }
     }
 }

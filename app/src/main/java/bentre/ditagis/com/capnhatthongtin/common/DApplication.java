@@ -73,7 +73,7 @@ public class DApplication extends Application {
 
     //  feature hanh chinh
     private HashMap<String, String> hashMapHuyenTP;
-    private ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList;
+    private ArrayList<MapViewAddDoneLoadingListener.HanhChinh> hanhChinhXaList;
 
     public HashMap<String, String> getHashMapHuyenTP() {
         return hashMapHuyenTP;
@@ -83,11 +83,11 @@ public class DApplication extends Application {
         this.hashMapHuyenTP = hashMapHuyenTP;
     }
 
-    public ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> getHanhChinhXaList() {
+    public ArrayList<MapViewAddDoneLoadingListener.HanhChinh> getHanhChinhXaList() {
         return hanhChinhXaList;
     }
 
-    public void setHanhChinhXaList(ArrayList<MapViewAddDoneLoadingListener.HanhChinhXa> hanhChinhXaList) {
+    public void setHanhChinhXaList(ArrayList<MapViewAddDoneLoadingListener.HanhChinh> hanhChinhXaList) {
         this.hanhChinhXaList = hanhChinhXaList;
     }
 
