@@ -22,6 +22,7 @@ import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,10 +78,14 @@ public class TraCuuActivity extends AppCompatActivity {
             HashMap<String, String> hashMapHuyenTP = mDApplication.getHashMapHuyenTP();
             huyenTPCodes.add(getString(R.string.whole_province));
             huyenTPCodes.add(getString(R.string.value_is_null));
+            List<String> tenHuyenTPs = new ArrayList<>();
             for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
                 String value = entry.getValue();
-                huyenTPCodes.add(value);
+                tenHuyenTPs.add(value);
+
             }
+            Collections.sort(tenHuyenTPs);
+            huyenTPCodes.addAll(tenHuyenTPs);
             ArrayAdapter<String> adapterHuyenTP = new ArrayAdapter<String>(layout.getContext(), android.R.layout.simple_list_item_1, huyenTPCodes);
             spinnerHuyenTP.setAdapter(adapterHuyenTP);
             ArrayAdapter<String> adapterPhuongXa = new ArrayAdapter<String>(layout.getContext(), android.R.layout.simple_list_item_1, phuongXaCodes);
@@ -99,12 +104,15 @@ public class TraCuuActivity extends AppCompatActivity {
                             adapterPhuongXa.add(getString(R.string.all_district));
                             adapterPhuongXa.add(getString(R.string.value_is_null));
                             ArrayList<MapViewAddDoneLoadingListener.HanhChinh> hanhChinhXaList = mDApplication.getHanhChinhXaList();
+                            List<String> tenPhuongXas = new ArrayList<>();
                             if (hanhChinhXaList != null) {
                                 for (MapViewAddDoneLoadingListener.HanhChinh hanhChinhXa : hanhChinhXaList) {
                                     if (code.equals(hanhChinhXa.getMaHuyenTP())) {
-                                        adapterPhuongXa.add(hanhChinhXa.getTenPhuongXa());
+                                        tenPhuongXas.add(hanhChinhXa.getTenPhuongXa());
                                     }
                                 }
+                                Collections.sort(tenPhuongXas);
+                                adapterPhuongXa.addAll(tenPhuongXas);
                             }
                             break;
                         }
