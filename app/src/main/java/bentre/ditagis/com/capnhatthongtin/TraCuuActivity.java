@@ -82,7 +82,6 @@ public class TraCuuActivity extends AppCompatActivity {
             for (Map.Entry<String, String> entry : hashMapHuyenTP.entrySet()) {
                 String value = entry.getValue();
                 tenHuyenTPs.add(value);
-
             }
             Collections.sort(tenHuyenTPs);
             huyenTPCodes.addAll(tenHuyenTPs);

@@ -6,10 +6,10 @@ android {
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.ditagis.bentre.capnhatthongtin"
-        minSdkVersion 21
+        minSdkVersion 19 //4.4
         targetSdkVersion 26
-        versionCode 8
-        versionName "1.0.5-beta-3"
+        versionCode 9
+        versionName "1.0.5-beta-4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     repositories {
