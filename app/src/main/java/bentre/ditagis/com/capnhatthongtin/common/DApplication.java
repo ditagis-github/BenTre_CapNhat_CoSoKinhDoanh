@@ -1,6 +1,8 @@
 package bentre.ditagis.com.capnhatthongtin.common;
 
 import android.app.Application;
+import android.content.Context;
+import android.support.multidex.MultiDex;
 
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
@@ -18,6 +20,12 @@ import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
 
 public class DApplication extends Application {
+    @Override
+    protected void attachBaseContext(Context context) {
+        super.attachBaseContext(context);
+        MultiDex.install(this);
+    }
+
     //user name login
     private User user;
 
