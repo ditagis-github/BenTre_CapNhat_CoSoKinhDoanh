@@ -8,7 +8,6 @@ import android.widget.Toast;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.data.ArcGISFeature;
 import com.esri.arcgisruntime.data.Feature;
-import com.esri.arcgisruntime.data.FeatureEditResult;
 import com.esri.arcgisruntime.data.FeatureQueryResult;
 import com.esri.arcgisruntime.data.Field;
 import com.esri.arcgisruntime.data.QueryParameters;
@@ -20,9 +19,7 @@ import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.MapView;
 
-import java.util.Calendar;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
@@ -36,6 +33,7 @@ import bentre.ditagis.com.capnhatthongtin.async.SingleTapMapViewAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.entities.DAddress;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
+import bentre.ditagis.com.capnhatthongtin.utities.DAlertDialog;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
 
@@ -68,7 +66,18 @@ public class MapViewHandler extends Activity {
 
     public void editFeature() {
         Point editPoint = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
-        new EditFeatureAsync(mainActivity, mMapView, () -> {
+        new EditFeatureAsync(mainActivity, mMapView, new EditFeatureAsync.AsyncResponse() {
+            @Override
+            public void processFinish(Object o) {
+
+                if (o instanceof Boolean) {
+                    if ((Boolean) o) {
+                        new DAlertDialog().show(mainActivity, "Cập nhật thành công");
+                    } else new DAlertDialog().show(mainActivity, "Cập nhật thất bại");
+                } else if (o instanceof String) {
+                    new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", (String) o);
+                }
+            }
         }).execute(editPoint);
     }
 
@@ -79,39 +88,39 @@ public class MapViewHandler extends Activity {
         addFeatureAsync.execute(add_point);
     }
 
-    public void updateCSKDTable(double[] logLat) {
-        Feature selectedFeatureTBL = mDApplication.getSelectedFeatureTBL();
-        if (selectedFeatureTBL == null) return;
-        String toaDoX = "";
-        String toaDoY = "";
-        if (logLat != null) {
-            toaDoX = String.valueOf(logLat[1]);
-            toaDoY = String.valueOf(logLat[0]);
-        }
-        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, toaDoX);
-        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, toaDoY);
-        Calendar c = Calendar.getInstance();
-        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.TGCAP_NHAT, c);
-        ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
-        mapViewResult.addDoneListener(() -> {
-            final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();
-            listListenableEditAsync.addDoneListener(() -> {
-                try {
-                    List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
-                    if (featureEditResults.size() > 0) {
-                        mDApplication.setSelectedFeatureTBL(null);
-                    }
-                } catch (InterruptedException e) {
-                    MySnackBar.make(mMapView, mainActivity.getString(R.string.data_cant_add), false);
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    MySnackBar.make(mMapView, mainActivity.getString(R.string.data_cant_add), false);
-                    e.printStackTrace();
-                }
-
-            });
-        });
-    }
+//    public void updateCSKDTable(double[] logLat) {
+//        Feature selectedFeatureTBL = mDApplication.getSelectedFeatureTBL();
+//        if (selectedFeatureTBL == null) return;
+//        String toaDoX = "";
+//        String toaDoY = "";
+//        if (logLat != null) {
+//            toaDoX = String.valueOf(logLat[1]);
+//            toaDoY = String.valueOf(logLat[0]);
+//        }
+//        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, toaDoX);
+//        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, toaDoY);
+//        Calendar c = Calendar.getInstance();
+//        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.TGCAP_NHAT, c);
+//        ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
+//        mapViewResult.addDoneListener(() -> {
+//            final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();
+//            listListenableEditAsync.addDoneListener(() -> {
+//                try {
+//                    List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
+//                    if (featureEditResults.size() > 0) {
+//                        mDApplication.setSelectedFeatureTBL(null);
+//                    }
+//                } catch (InterruptedException e) {
+//                    MySnackBar.make(mMapView, mainActivity.getString(R.string.data_cant_add), false);
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    MySnackBar.make(mMapView, mainActivity.getString(R.string.data_cant_add), false);
+//                    e.printStackTrace();
+//                }
+//
+//            });
+//        });
+//    }
 
     public double[] pointToLogLat(Point point) {
         Geometry project = GeometryEngine.project(point, SpatialReferences.getWgs84());
@@ -169,33 +178,31 @@ public class MapViewHandler extends Activity {
                 Object x = item.getAttributes().get(Constant.CSKDTableFields.X);
                 Object y = item.getAttributes().get(Constant.CSKDTableFields.Y);
                 if (result.iterator().hasNext()) {
-                    Feature next = result.iterator().next();
-                    popupInfos.showPopup((ArcGISFeature) next);
-                    if (x == null || y == null || x.equals("") || y.equals("")) {
-                        AlertDialog alertDialog = new AlertDialog.Builder(mainActivity)
-                                .setTitle("Thông báo")
-                                .setMessage("CSKD đã có!")
-                                .setIcon(R.drawable.add)
-                                .setPositiveButton("Cập nhật vị trí kinh doanh", (dialog, whichButton) -> {
-                                    Geometry geometry = next.getGeometry();
-                                    if (geometry != null) {
-                                        Point center = geometry.getExtent().getCenter();
-                                        double[] logLat = pointToLogLat(center);
-                                        updateCSKDTable(logLat);
-                                    }
-                                    dialog.dismiss();
-                                }).setCancelable(false)
-                                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
-                                .create();
-                        alertDialog.show();
-                    }
+                    Feature featureLYR = result.iterator().next();
+                    mDApplication.setSelectedFeatureLYR(featureLYR);
+                    popupInfos.showPopup((ArcGISFeature) featureLYR);
+//                    if (x == null || y == null || x.equals("") || y.equals("")) {
+//                        AlertDialog alertDialog = new AlertDialog.Builder(mainActivity)
+//                                .setTitle("Thông báo")
+//                                .setMessage("CSKD đã có!")
+//                                .setIcon(R.drawable.add)
+//                                .setPositiveButton("Cập nhật vị trí kinh doanh", (dialog, whichButton) -> {
+//                                    Geometry geometry = next.getGeometry();
+//                                    if (geometry != null) {
+//                                        Point center = geometry.getExtent().getCenter();
+//                                        double[] logLat = pointToLogLat(center);
+//                                        updateCSKDTable(logLat);
+//                                    }
+//                                    dialog.dismiss();
+//                                }).setCancelable(false)
+//                                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+//                                .create();
+//                        alertDialog.show();
+//                    }
 
-                }
-                else {
-                    if (x == null || y == null || x.equals("") || y.equals("")) {
+                } else if (x == null || y == null || x.equals("") || y.equals("")) {
                         this.mainActivity.addFeature();
-                    }
-                    else {
+                    } else {
                         AlertDialog alertDialog = new AlertDialog.Builder(mainActivity)
                                 .setTitle("Thông báo")
                                 .setMessage("Không tìm được CSKD đã thêm!")
@@ -208,11 +215,11 @@ public class MapViewHandler extends Activity {
                                 .create();
                         alertDialog.show();
                     }
-                }
+
             } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+                new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", e.toString());
+            } catch (Exception e) {
+                new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", e.toString());
             }
         });
     }
@@ -269,6 +276,7 @@ public class MapViewHandler extends Activity {
     }
 
     private void queryAsync(QueryParameters queryParameters, TableCoSoKinhDoanhAdapter adapter) {
+        queryParameters.setReturnGeometry(true);
         final ListenableFuture<FeatureQueryResult> featureQueryResultListenableFuture
                 = sft_CSKDLayer.queryFeaturesAsync(queryParameters);
         featureQueryResultListenableFuture.addDoneListener(() -> {

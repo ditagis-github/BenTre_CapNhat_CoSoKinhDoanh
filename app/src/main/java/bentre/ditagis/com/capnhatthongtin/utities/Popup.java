@@ -160,7 +160,6 @@ public class Popup extends AppCompatActivity {
 
     private void changeLocation(){
         dimissCallout();
-        mDApplication.setSelectedFeatureLYR(mSelectedArcGISFeature);
         mDApplication.getMainActivity().addFeature();
     }
     private void viewMoreInfo() {
@@ -168,9 +167,9 @@ public class Popup extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity, android.R.style.Theme_Material_Light_NoActionBar_Fullscreen);
         View layout = mainActivity.getLayoutInflater().inflate(R.layout.layout_viewmoreinfo_feature, null);
         final FeatureViewMoreInfoAdapter adapter = new FeatureViewMoreInfoAdapter(mainActivity, new ArrayList<FeatureViewMoreInfoAdapter.Item>());
-        final ListView lstView = layout.findViewById(R.id.lstView_alertdialog_info);
-        lstView.setAdapter(adapter);
-        lstView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        final ListView lstView_ViewMoreInfo = layout.findViewById(R.id.lstView_alertdialog_info);
+        lstView_ViewMoreInfo.setAdapter(adapter);
+        lstView_ViewMoreInfo.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 edit(parent, view, position, id);
@@ -422,7 +421,8 @@ public class Popup extends AppCompatActivity {
                 if (result.iterator().hasNext()) {
                     Feature item = result.iterator().next();
                     mDApplication.setSelectedFeatureTBL(item);
-                    mDApplication.getMapViewHandler().updateCSKDTable(null);
+                    //TODO update CSKDTable null
+//                    mDApplication.getMapViewHandler().updateCSKDTable(null);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();

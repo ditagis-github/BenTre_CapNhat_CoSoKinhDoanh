@@ -1,5 +1,6 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.graphics.Point;
 import android.os.AsyncTask;
@@ -19,7 +20,7 @@ import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
 
-public class SingleTapMapViewAsync extends AsyncTask<Point, Void, Void> {
+public class SingleTapMapViewAsync extends AsyncTask<Point, Object, Void> {
     private ProgressDialog mDialog;
     private MainActivity mainActivity;
     private MapView mapView;
@@ -38,7 +39,7 @@ public class SingleTapMapViewAsync extends AsyncTask<Point, Void, Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mDialog.setMessage(mainActivity.getString(R.string.processing));
+        mDialog.setMessage("Đang xác định CSKD...");
         mDialog.setCancelable(false);
         mDialog.show();
     }
@@ -46,27 +47,25 @@ public class SingleTapMapViewAsync extends AsyncTask<Point, Void, Void> {
     @Override
     protected Void doInBackground(android.graphics.Point... params) {
         final android.graphics.Point clickPoint = params[0];
-        final ListenableFuture<IdentifyLayerResult> identifyFuture = mapView.identifyLayerAsync(featureLayer, clickPoint, 5, false, 1);
+        @SuppressLint("WrongThread") final ListenableFuture<IdentifyLayerResult> identifyFuture = mapView.identifyLayerAsync(featureLayer, clickPoint, 5, false, 1);
         identifyFuture.addDoneListener(new Runnable() {
             @Override
             public void run() {
                 try {
-                    if (mDialog != null && mDialog.isShowing()) {
-                        mDialog.dismiss();
-                    }
                     IdentifyLayerResult layerResult = identifyFuture.get();
                     List<GeoElement> resultGeoElements = layerResult.getElements();
                     if (resultGeoElements.size() > 0) {
                         if (resultGeoElements.get(0) instanceof ArcGISFeature) {
                             ArcGISFeature feature = (ArcGISFeature) resultGeoElements.get(0);
-                            popupInfos.showPopup(feature);
-                        }
+                            publishProgress(feature);
+                        } else publishProgress();
                     } else {
-                        popupInfos.dimissCallout();
+                        publishProgress();
                     }
                     publishProgress();
                 } catch (Exception e) {
                     Log.e(mainActivity.getString(R.string.app_name), "Select feature failed: " + e.getMessage());
+                    publishProgress();
                 }
             }
         });
@@ -74,8 +73,13 @@ public class SingleTapMapViewAsync extends AsyncTask<Point, Void, Void> {
     }
 
     @Override
-    protected void onProgressUpdate(Void... values) {
+    protected void onProgressUpdate(Object... values) {
         super.onProgressUpdate(values);
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
+        if (values != null && values.length > 0 && values[0] != null)
+            popupInfos.showPopup((ArcGISFeature) values[0]);
     }
 
 

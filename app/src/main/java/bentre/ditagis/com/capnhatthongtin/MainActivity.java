@@ -46,7 +46,11 @@ import android.widget.Toast;
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.ArcGISRuntimeException;
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.data.ArcGISFeature;
 import com.esri.arcgisruntime.data.Feature;
+import com.esri.arcgisruntime.data.FeatureQueryResult;
+import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
@@ -85,6 +89,7 @@ import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.CheckConnectInternet;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
+import bentre.ditagis.com.capnhatthongtin.utities.DAlertDialog;
 import bentre.ditagis.com.capnhatthongtin.utities.LocationHelper;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
@@ -92,7 +97,7 @@ import bentre.ditagis.com.capnhatthongtin.utities.Popup;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     private Uri mUri;
-    private Popup popupInfos;
+    private Popup mPopupInfos;
     private MapView mMapView;
     private ArcGISMap mMap;
     private Callout mCallout;
@@ -210,10 +215,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         this.coSoKinhDoanhAdapter = new TableCoSoKinhDoanhAdapter(MainActivity.this, items);
         listViewSearchLayer.setAdapter(coSoKinhDoanhAdapter);
         listViewSearchLayer.setOnItemClickListener((parent, view, position, id) -> {
-            String objectID = ((Feature) parent.getItemAtPosition(position)).getAttributes().get(Constant.OBJECTID).toString();
-            mMapViewHandler.queryByObjectID(objectID);
-            coSoKinhDoanhAdapter.clear();
-            coSoKinhDoanhAdapter.notifyDataSetChanged();
+            Feature feature = ((Feature) parent.getItemAtPosition(position));
+            mApplication.setSelectedFeatureLYR(feature);
+            //TODO lấy featureTBL cho feature
+            getSelectedFeature(feature);
+
+
         });
 
 
@@ -233,6 +240,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+    public void getSelectedFeature(Feature item) {
+        final QueryParameters queryParameters = new QueryParameters();
+        final String query = String.format("%s = '%s'", Constant.CSKDTableFields.MaKinhDoanh, item.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh));
+        queryParameters.setWhereClause(query);
+        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
+        final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
+        feature.addDoneListener(() -> {
+            try {
+                FeatureQueryResult result = feature.get();
+                if (result.iterator().hasNext()) {
+                    Feature featureTBL = result.iterator().next();
+                    mApplication.setSelectedFeatureTBL(featureTBL);
+//                    mPopupInfos.showPopup((ArcGISFeature) mApplication.getSelectedFeatureLYR());
+//                    mMapViewHandler.queryByMaKinhDoanh(featureTBL);
+                    mPopupInfos.showPopup((ArcGISFeature) item);
+                    coSoKinhDoanhAdapter.clear();
+                    coSoKinhDoanhAdapter.notifyDataSetChanged();
+                } else {
+                    new DAlertDialog().show(MainActivity.this, "Không tìm thấy CSKD_TABLE");
+                }
+            } catch (InterruptedException e) {
+                new DAlertDialog().show(MainActivity.this, "Có lỗi xảy ra", e.toString());
+            } catch (Exception e) {
+                new DAlertDialog().show(MainActivity.this, "Có lỗi xảy ra", e.toString());
+            }
+        });
+
+    }
     private void setUp() {
         states = new int[][]{{android.R.attr.state_checked}, {}};
         colors = new int[]{R.color.colorTextColor_1, R.color.colorTextColor_1};
@@ -377,7 +412,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void run() {
                         mMapViewHandler = new MapViewHandler(mMapView, MainActivity.this);
                         mApplication.setMapViewHandler(mMapViewHandler);
-                        mMapViewHandler.setPopupInfos(popupInfos);
+                        mMapViewHandler.setPopupInfos(mPopupInfos);
                     }
                 });
             }
@@ -413,7 +448,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             MySnackBar.make(mMapView, getString(R.string.no_access_permissions), true);
             return;
         }
-        popupInfos = new Popup(MainActivity.this, mMapView, mCallout);
+        mPopupInfos = new Popup(MainActivity.this, mMapView, mCallout);
         mMap.addDoneLoadingListener(new Runnable() {
             @Override
             public void run() {
@@ -769,6 +804,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case Constant.REQUEST.QUERY:
                 if (resultCode == Activity.RESULT_OK) {
+//                    mPopupInfos.showPopup((ArcGISFeature) mApplication.getSelectedFeatureLYR());
+                    mMapViewHandler.queryByMaKinhDoanh(mApplication.getSelectedFeatureTBL());
 //                    addFeature();
                 }
 

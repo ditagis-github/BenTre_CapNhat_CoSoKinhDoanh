@@ -1,6 +1,7 @@
 package bentre.ditagis.com.capnhatthongtin;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,13 +27,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
 import bentre.ditagis.com.capnhatthongtin.async.QueryTableCoSoKinhDoanhAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
+import bentre.ditagis.com.capnhatthongtin.utities.DAlertDialog;
 
 public class TraCuuActivity extends AppCompatActivity {
     private TextView txtTongItem;
@@ -251,15 +252,21 @@ public class TraCuuActivity extends AppCompatActivity {
         }
         builder.append(" 1 = 1 ");
         queryParameters.setWhereClause(builder.toString());
-        ListView listView = findViewById(R.id.listview);
+        ListView listViewActivityTraCuu = findViewById(R.id.listview);
         final List<Feature> items = new ArrayList<>();
         final TableCoSoKinhDoanhAdapter adapter = new TableCoSoKinhDoanhAdapter(this, items);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener((parent, view, position, id) -> {
+        listViewActivityTraCuu.setAdapter(adapter);
+        listViewActivityTraCuu.setOnItemClickListener((parent, view, position, id) -> {
             Feature item = adapter.getItems().get(position);
-            getSelectedFeature(item);
-            mDApplication.getMapViewHandler().queryByMaKinhDoanh(item);
-            finish();
+            mDApplication.setSelectedFeatureTBL(item);
+            Intent intent = new Intent();
+            TraCuuActivity.this.setResult(RESULT_OK, intent);
+            TraCuuActivity.this.finish();
+//            mDApplication.setSelectedFeatureLYR(item);
+//            getSelectedFeature(item);
+//            mDApplication.getMapViewHandler().queryByMaKinhDoanh(item);
+
+
         });
         new QueryTableCoSoKinhDoanhAsync(this, mServiceFeatureTable, txtTongItem, adapter, features -> {
         }, mParameterQuery.top).execute(builder.toString());
@@ -277,11 +284,16 @@ public class TraCuuActivity extends AppCompatActivity {
                 if (result.iterator().hasNext()) {
                     Feature next = result.iterator().next();
                     mDApplication.setSelectedFeatureTBL(next);
+                    Intent intent = new Intent();
+                    TraCuuActivity.this.setResult(RESULT_OK, intent);
+                    TraCuuActivity.this.finish();
+                } else {
+                    new DAlertDialog().show(TraCuuActivity.this, "Không tìm thấy CSKD_TABLE");
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+                new DAlertDialog().show(TraCuuActivity.this, "Có lỗi xảy ra", e.toString());
+            } catch (Exception e) {
+                new DAlertDialog().show(TraCuuActivity.this, "Có lỗi xảy ra", e.toString());
             }
         });
 

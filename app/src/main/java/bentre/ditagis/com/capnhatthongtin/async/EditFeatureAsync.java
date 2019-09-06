@@ -22,31 +22,29 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
-import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
-import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 
-public class EditFeatureAsync extends AsyncTask<Point, Void, Void> {
+public class EditFeatureAsync extends AsyncTask<Point, Object, Void> {
     private ProgressDialog mDialog;
     private MainActivity mainActivity;
     private MapView mapView;
-    private DApplication dApplication;
+    private DApplication mApplication;
     private ServiceFeatureTable sft_CSKDLayer;
     private LocatorTask loc = new LocatorTask("http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer");
-    private Feature featureEdit;
+    private Feature mFeatureEdit;
 
     public EditFeatureAsync(MainActivity mainActivity, MapView mapView,AsyncResponse asyncResponse) {
         this.mainActivity = mainActivity;
         this.mapView = mapView;
-        this.dApplication = (DApplication) mainActivity.getApplication();
-        this.sft_CSKDLayer = (ServiceFeatureTable) this.dApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        this.mApplication = (DApplication) mainActivity.getApplication();
+        this.sft_CSKDLayer = (ServiceFeatureTable) this.mApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
         this.delegate = asyncResponse;
         mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
-        featureEdit = dApplication.getSelectedFeatureLYR();
+        mFeatureEdit = mApplication.getSelectedFeatureLYR();
     }
     public interface AsyncResponse {
-        void processFinish();
+        void processFinish(Object o);
     }
     private AsyncResponse delegate = null;
     @Override
@@ -64,34 +62,10 @@ public class EditFeatureAsync extends AsyncTask<Point, Void, Void> {
         return null;
     }
 
-    private void notifyCantInsert() {
-        MySnackBar.make(mapView, mainActivity.getString(R.string.data_cant_add), false);
-        if (mDialog != null && mDialog.isShowing()) {
-            mDialog.dismiss();
-            delegate.processFinish();
-        }
-
-    }
-
-    private void notifyError() {
-        MySnackBar.make(mapView, mainActivity.getString(R.string.error_occurred_notify), false);
-        if (mDialog != null && mDialog.isShowing()) {
-            mDialog.dismiss();
-            delegate.processFinish();
-        }
-
-    }
-    private void notifyWrongLocation() {
-        MySnackBar.make(mapView, mainActivity.getString(R.string.data_wrong_location), false);
-        if (mDialog != null && mDialog.isShowing()) {
-            mDialog.dismiss();
-        }
-
-    }
     private void editFeatureAsync(Point clickPoint) {
         QueryParameters queryParameters = new QueryParameters();
         queryParameters.setGeometry(clickPoint);
-        final ListenableFuture<FeatureQueryResult> featureQueryResultListenableFuture = this.dApplication.getSft_HanhChinhXa().queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
+        final ListenableFuture<FeatureQueryResult> featureQueryResultListenableFuture = this.mApplication.getSft_HanhChinhXa().queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         featureQueryResultListenableFuture.addDoneListener(new Runnable() {
             @Override
             public void run() {
@@ -99,19 +73,19 @@ public class EditFeatureAsync extends AsyncTask<Point, Void, Void> {
                     FeatureQueryResult result = featureQueryResultListenableFuture.get();
                     Iterator<Feature> iterator = result.iterator();
                     if (iterator.hasNext()) {
-                        Feature feature = iterator.next();
-                        if(feature != null){
-                            String maHuyen = feature.getAttributes().get(Constant.HanhChinhFields.mahuyentp).toString();
-                            String maXa = feature.getAttributes().get(Constant.HanhChinhFields.maxa).toString();
-                            featureEdit.setGeometry(clickPoint);
-                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, maHuyen);
-                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, maXa);
+                        Feature featurePhuongXa = iterator.next();
+                        if (featurePhuongXa != null) {
+                            String maHuyen = featurePhuongXa.getAttributes().get(Constant.HanhChinhFields.mahuyentp).toString();
+                            String maXa = featurePhuongXa.getAttributes().get(Constant.HanhChinhFields.maxa).toString();
+                            mFeatureEdit.setGeometry(clickPoint);
+                            mFeatureEdit.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, maHuyen);
+                            mFeatureEdit.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, maXa);
                             Calendar c = Calendar.getInstance();
-                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.TGCAP_NHAT, c);
-                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.NGUOI_CAP_NHAT, dApplication.getUser().getUserName());
-                            Object maKinhDoanh = featureEdit.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
+                            mFeatureEdit.getAttributes().put(Constant.CSKDLayerFields.TGCAP_NHAT, c);
+                            mFeatureEdit.getAttributes().put(Constant.CSKDLayerFields.NGUOI_CAP_NHAT, mApplication.getUser().getUserName());
+                            Object maKinhDoanh = mFeatureEdit.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
                             if(maKinhDoanh != null){
-                                applyEditsAsync(featureEdit);
+                                applyEditsAsync(mFeatureEdit);
                             } else {
                                 final ListenableFuture<List<GeocodeResult>> listListenableFuture = loc.reverseGeocodeAsync(clickPoint);
                                 listListenableFuture.addDoneListener(() -> {
@@ -124,30 +98,30 @@ public class EditFeatureAsync extends AsyncTask<Point, Void, Void> {
                                                 attrs.put(key, geocodeResult.getAttributes().get(key));
                                             }
                                             String address = geocodeResult.getAttributes().get("LongLabel").toString();
-                                            featureEdit.getAttributes().put(Constant.CSKDLayerFields.DiaChi, address);
-                                            applyEditsAsync(featureEdit);
+                                            mFeatureEdit.getAttributes().put(Constant.CSKDLayerFields.DiaChi, address);
+                                            applyEditsAsync(mFeatureEdit);
+                                        } else {
+                                            publishProgress(false);
                                         }
                                     } catch (InterruptedException e1) {
-                                        notifyError();
-                                        e1.printStackTrace();
-                                    } catch (ExecutionException e1) {
-                                        notifyError();
-                                        e1.printStackTrace();
+                                        publishProgress(e1.toString());
+                                    } catch (Exception e1) {
+                                        publishProgress(e1.toString());
                                     }
                                 });
                             }
                         }
                         else {
-                            notifyWrongLocation();
+                            publishProgress("Vị trí này không thuộc vùng quản lý!");
                         }
                     }
                     else {
-                        notifyWrongLocation();
+                        publishProgress("Vị trí này không thuộc vùng quản lý!");
                     }
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    publishProgress(e.toString());
                 } catch (ExecutionException e) {
-                    e.printStackTrace();
+                    publishProgress(e.toString());
                 }
             }
         });
@@ -160,34 +134,62 @@ public class EditFeatureAsync extends AsyncTask<Point, Void, Void> {
                 try {
                     List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
                     if (featureEditResults.size() > 0) {
-                        if (mDialog != null && mDialog.isShowing()) {
-                            mDialog.dismiss();
-                            delegate.processFinish();
-                        }
+                        updateCSKDTable();
                     } else {
-                        notifyCantInsert();
+                        publishProgress(false);
                     }
                 } catch (InterruptedException e) {
-                    notifyError();
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    notifyError();
-                    e.printStackTrace();
+                    publishProgress(e.toString());
+                } catch (Exception e) {
+                    publishProgress(e.toString());
                 }
 
             });
         });
 
     }
+
+    public void updateCSKDTable() {
+        Feature selectedFeatureTBL = mApplication.getSelectedFeatureTBL();
+        if (selectedFeatureTBL == null) return;
+        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.X, "Đã cập nhật");
+        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.Y, "Đã cập nhật");
+        Calendar c = Calendar.getInstance();
+        selectedFeatureTBL.getAttributes().put(Constant.CSKDTableFields.TGCAP_NHAT, c);
+        ServiceFeatureTable sft_CSKDTable = (ServiceFeatureTable) mApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
+        ListenableFuture<Void> mapViewResult = sft_CSKDTable.updateFeatureAsync(selectedFeatureTBL);
+        mapViewResult.addDoneListener(() -> {
+            final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = sft_CSKDTable.applyEditsAsync();
+            listListenableEditAsync.addDoneListener(() -> {
+                try {
+                    List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
+                    if (featureEditResults.size() > 0) {
+                        mApplication.setSelectedFeatureTBL(null);
+                        publishProgress(true);
+                    } else {
+                        publishProgress(false);
+                    }
+                } catch (InterruptedException e) {
+                    publishProgress(e.toString());
+                } catch (ExecutionException e) {
+                    publishProgress(e.toString());
+                }
+
+            });
+        });
+    }
     @Override
-    protected void onProgressUpdate(Void... values) {
+    protected void onProgressUpdate(Object... values) {
         super.onProgressUpdate(values);
+        if (mDialog != null && mDialog.isShowing())
+            mDialog.dismiss();
+        delegate.processFinish(values[0]);
     }
 
 
     @Override
     protected void onPostExecute(Void result) {
-        dApplication.getMainActivity().addFeatureClose();
+        mApplication.getMainActivity().addFeatureClose();
         super.onPostExecute(result);
 
     }
