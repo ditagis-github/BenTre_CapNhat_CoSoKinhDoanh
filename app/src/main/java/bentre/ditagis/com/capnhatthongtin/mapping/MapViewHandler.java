@@ -27,7 +27,7 @@ import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.adapter.DiaChiAdapter;
 import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
 import bentre.ditagis.com.capnhatthongtin.async.AddFeatureAsync;
-import bentre.ditagis.com.capnhatthongtin.async.EditFeatureAsync;
+import bentre.ditagis.com.capnhatthongtin.async.EditGeometryAsync;
 import bentre.ditagis.com.capnhatthongtin.async.FindLocationAsycn;
 import bentre.ditagis.com.capnhatthongtin.async.SingleTapMapViewAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
@@ -56,8 +56,8 @@ public class MapViewHandler extends Activity {
         this.mMapView = mMapView;
         this.mainActivity = mainActivity;
         this.mDApplication = (DApplication) mainActivity.getApplication();
-        this.sft_CSKDTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
-        this.sft_CSKDLayer = (ServiceFeatureTable) mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        this.sft_CSKDTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
+        this.sft_CSKDLayer = (ServiceFeatureTable) mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureTable();
     }
 
     public void setPopupInfos(Popup popupInfos) {
@@ -66,7 +66,7 @@ public class MapViewHandler extends Activity {
 
     public void editFeature() {
         Point editPoint = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
-        new EditFeatureAsync(mainActivity, mMapView, new EditFeatureAsync.AsyncResponse() {
+        new EditGeometryAsync(mainActivity, mMapView, new EditGeometryAsync.AsyncResponse() {
             @Override
             public void processFinish(Object o) {
 

@@ -244,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final QueryParameters queryParameters = new QueryParameters();
         final String query = String.format("%s = '%s'", Constant.CSKDTableFields.MaKinhDoanh, item.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh));
         queryParameters.setWhereClause(query);
-        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
+        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
         final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
@@ -288,6 +288,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initMapView() {
         mLinnearDisplayLayerBaseMap = findViewById(R.id.linnearDisplayLayerBaseMap);
         mMapView = findViewById(R.id.mapView);
@@ -305,6 +306,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 try {
+                    android.graphics.Point point = new android.graphics.Point((int) e.getX(), (int) e.getY());
+
+                    // create a map point from a point
+                    Point mapPoint = mMapView.screenToLocation(point);
                     if (mMapViewHandler != null)
                         mMapViewHandler.onSingleTapMapView(e);
                 } catch (ArcGISRuntimeException ex) {
@@ -313,6 +318,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return super.onSingleTapConfirmed(e);
             }
 
+
+            @SuppressLint("SetTextI18n")
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 if (mMapViewHandler != null) {
@@ -331,6 +338,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         changeStatusOfLocationDataSource();
         mLocationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
                 Point position = locationChangedEvent.getLocation().getPosition();
@@ -389,6 +397,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         for (final LayerInfoDTG layerInfoDTG : ListObjectDB.getInstance().getLstFeatureLayerDTG()) {
             if (!layerInfoDTG.isView()) continue;
             String url = layerInfoDTG.getUrl();
+            if (url.equals("https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDe/FeatureServer/0"))
+                url = "https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDeTest/FeatureServer/1";
+            else if(url.equals("http://ditagis.com/arcgis/rest/services/BenTre_QLKD/CSKD/FeatureServer/1"))
+                url = "https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDeTest/FeatureServer/2";
             ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
             FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
             featureLayer.setName(layerInfoDTG.getTitleLayer());
@@ -406,7 +418,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 featureLayer.loadAsync();
                 mFeatureLayerDTGS.add(featureLayerDTG);
                 mMap.getOperationalLayers().add(featureLayer);
-                mApplication.setLayer_CoSoKinhDoanhDTG(featureLayerDTG);
+                mApplication.setLayer_CoSoKinhDoanhDTG(featureLayer);
                 featureLayer.addDoneLoadingListener(new Runnable() {
                     @Override
                     public void run() {
@@ -417,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
             if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.table_cosokinhdoanh))) {
-                mApplication.setTable_CoSoKinhDoanhChuaCapNhatDTG(featureLayerDTG);
+                mApplication.setTable_CoSoKinhDoanhChuaCapNhat(featureLayer);
                 mFeatureLayerDTGS.add(featureLayerDTG);
             }
             if (layerInfoDTG.getId().toUpperCase().equals(getString(R.string.IDLayer_Basemap))) {
@@ -631,17 +643,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        if (id == R.id.nav_tracuu) {
+        addFeatureClose();
+        switch (id) {
+            case R.id.nav_tracuu:
             final Intent intent = new Intent(this, TraCuuActivity.class);
             this.startActivityForResult(intent, Constant.REQUEST.QUERY);
-
-        } else if (id == R.id.nav_logOut) {
+                break;
+            case R.id.nav_refresh:
+                setFeatureService();
+            case R.id.nav_logOut:
             startSignIn();
+                break;
         }
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -709,6 +727,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 ((FloatingActionButton) findViewById(R.id.floatBtnLayer)).setVisibility(View.VISIBLE);
                 break;
             case R.id.img_layvitri:
+                addFeatureClose();
                 Feature featureLYR = mApplication.getSelectedFeatureLYR();
                 if (featureLYR != null) {
                     mMapViewHandler.editFeature();
@@ -717,6 +736,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if (featureTBL != null) {
                         mMapViewHandler.addFeature();
                     } else {
+                        //TODO tại sao lại zoo đây??
                         AlertDialog alertDialog = new AlertDialog.Builder(this)
                                 .setTitle("Thêm CSKD")
                                 .setMessage("Thêm cơ sở kinh doanh phát sinh")
@@ -729,7 +749,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 .create();
                         alertDialog.show();
                     }
-                    addFeatureClose();
+
                 }
 
                 break;
@@ -793,23 +813,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case Constant.REQUEST.LOGIN:
-                if (Activity.RESULT_OK != resultCode) {
-                    finish();
-                    return;
-                } else {
-                    initMapView();
-                }
-                break;
-            case Constant.REQUEST.QUERY:
-                if (resultCode == Activity.RESULT_OK) {
+        try {
+            switch (requestCode) {
+                case Constant.REQUEST.LOGIN:
+                    if (Activity.RESULT_OK != resultCode) {
+                        finish();
+                        return;
+                    } else {
+                        initMapView();
+                    }
+                    break;
+                case Constant.REQUEST.QUERY:
+                    if (resultCode == Activity.RESULT_OK) {
 //                    mPopupInfos.showPopup((ArcGISFeature) mApplication.getSelectedFeatureLYR());
-                    mMapViewHandler.queryByMaKinhDoanh(mApplication.getSelectedFeatureTBL());
+                        mMapViewHandler.queryByMaKinhDoanh(mApplication.getSelectedFeatureTBL());
 //                    addFeature();
-                }
+                    }
 
-                break;
+                    break;
+            }
+        } catch (Exception e) {
+            new DAlertDialog().show(MainActivity.this, "Có lỗi xảy ra", e.toString());
         }
     }
 }

@@ -14,11 +14,9 @@ import com.esri.arcgisruntime.geometry.GeometryEngine;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.view.MapView;
-import com.esri.arcgisruntime.tasks.geocode.GeocodeResult;
 import com.esri.arcgisruntime.tasks.geocode.LocatorTask;
 
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +26,10 @@ import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
+import bentre.ditagis.com.capnhatthongtin.utities.DAlertDialog;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 
-public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
+public class AddFeatureAsync extends AsyncTask<Point, Object, Void> {
     private ProgressDialog mDialog;
     private MainActivity mainActivity;
     private MapView mapView;
@@ -42,8 +41,8 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         this.mainActivity = mainActivity;
         this.mapView = mapView;
         this.dApplication = (DApplication) mainActivity.getApplication();
-        this.sft_CSKDTable = (ServiceFeatureTable) this.dApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
-        this.sft_CSKDLayer = (ServiceFeatureTable) this.dApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        this.sft_CSKDTable = (ServiceFeatureTable) this.dApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
+        this.sft_CSKDLayer = (ServiceFeatureTable) this.dApplication.getLayer_CoSoKinhDoanhDTG().getFeatureTable();
 
         mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
 
@@ -70,13 +69,6 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         }
 
     }
-    private void notifyCantInsert() {
-        MySnackBar.make(mapView, mainActivity.getString(R.string.data_cant_add), false);
-        if (mDialog != null && mDialog.isShowing()) {
-            mDialog.dismiss();
-        }
-
-    }
 
     private void notifyError() {
         MySnackBar.make(mapView, mainActivity.getString(R.string.error_occurred_notify), false);
@@ -85,20 +77,6 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
         }
 
     }
-
-    private void setAttributesLayer(Feature feature) {
-        Feature selectedFeatureTBL = dApplication.getSelectedFeatureTBL();
-        Map<String, Object> attributes = selectedFeatureTBL.getAttributes();
-        feature.getAttributes().put(Constant.CSKDLayerFields.MaKinhDoanh, attributes.get(Constant.CSKDTableFields.MaKinhDoanh).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, attributes.get(Constant.CSKDTableFields.MaPhuongXa).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, attributes.get(Constant.CSKDTableFields.MaHuyenTP).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.TenDoanhNghiep, attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.DiaChi, attributes.get(Constant.CSKDTableFields.DiaChi).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.DienThoai, attributes.get(Constant.CSKDTableFields.DienThoai).toString());
-        feature.getAttributes().put(Constant.CSKDLayerFields.NguoiTao, dApplication.getUser().getUserName());
-        feature.getAttributes().put(Constant.CSKDLayerFields.TG_TAO, Calendar.getInstance());
-    }
-
     private void addFeatureAsync(Point clickPoint) {
         QueryParameters queryParameters = new QueryParameters();
         queryParameters.setGeometry(clickPoint);
@@ -118,37 +96,51 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
                             featureAdd.setGeometry(clickPoint);
                             featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, maHuyen);
                             featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, maXa);
+
+                            double[] logLat = pointToLogLat(clickPoint);
+//                            updateCSKDTable(logLat);
+
+                            Feature featureTBL = dApplication.getSelectedFeatureTBL();
+                            Map<String, Object> attributes = featureTBL.getAttributes();
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaKinhDoanh, attributes.get(Constant.CSKDTableFields.MaKinhDoanh).toString());
+//                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, attributes.get(Constant.CSKDTableFields.MaPhuongXa).toString());
+//                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, attributes.get(Constant.CSKDTableFields.MaHuyenTP).toString());
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.TenDoanhNghiep, attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.DiaChi, attributes.get(Constant.CSKDTableFields.DiaChi).toString());
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.DienThoai, attributes.get(Constant.CSKDTableFields.DienThoai).toString());
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.NguoiTao, dApplication.getUser().getUserName());
+                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.TG_TAO, Calendar.getInstance());
                             featureAdd.getAttributes().put(Constant.CSKDLayerFields.TGCAP_NHAT, Calendar.getInstance());
                             featureAdd.getAttributes().put(Constant.CSKDLayerFields.NGUOI_CAP_NHAT, dApplication.getUser().getUserName());
-                            Feature featureTBL = dApplication.getSelectedFeatureTBL();
-                            if (featureTBL != null) {
-                                double[] logLat = pointToLogLat(clickPoint);
-                                setAttributesLayer(featureAdd);
-                                applyEditsAsync(featureAdd, logLat);
-                            } else {
-                                final ListenableFuture<List<GeocodeResult>> listListenableFuture = loc.reverseGeocodeAsync(clickPoint);
-                                listListenableFuture.addDoneListener(() -> {
-                                    try {
-                                        List<GeocodeResult> geocodeResults = listListenableFuture.get();
-                                        if (geocodeResults.size() > 0) {
-                                            GeocodeResult geocodeResult = geocodeResults.get(0);
-                                            Map<String, Object> attrs = new HashMap<>();
-                                            for (String key : geocodeResult.getAttributes().keySet()) {
-                                                attrs.put(key, geocodeResult.getAttributes().get(key));
-                                            }
-                                            String address = geocodeResult.getAttributes().get("LongLabel").toString();
-                                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.DiaChi, address);
-                                            applyEditsAsync(featureAdd, null);
-                                        }
-                                    } catch (InterruptedException e1) {
-                                        notifyError();
-                                        e1.printStackTrace();
-                                    } catch (ExecutionException e1) {
-                                        notifyError();
-                                        e1.printStackTrace();
-                                    }
-                                });
-                            }
+//                            setAttributesLayer(featureAdd);
+                            applyEditsAsync(featureAdd, logLat);
+//                            Feature featureTBL = dApplication.getSelectedFeatureTBL();
+//                            if (featureTBL == null) {
+//
+//
+//                                final ListenableFuture<List<GeocodeResult>> listListenableFuture = loc.reverseGeocodeAsync(clickPoint);
+//                                listListenableFuture.addDoneListener(() -> {
+//                                    try {
+//                                        List<GeocodeResult> geocodeResults = listListenableFuture.get();
+//                                        if (geocodeResults.size() > 0) {
+//                                            GeocodeResult geocodeResult = geocodeResults.get(0);
+//                                            Map<String, Object> attrs = new HashMap<>();
+//                                            for (String key : geocodeResult.getAttributes().keySet()) {
+//                                                attrs.put(key, geocodeResult.getAttributes().get(key));
+//                                            }
+//                                            String address = geocodeResult.getAttributes().get("LongLabel").toString();
+//                                            featureAdd.getAttributes().put(Constant.CSKDLayerFields.DiaChi, address);
+//                                            applyEditsAsync(featureAdd, null);
+//                                        }
+//                                    } catch (InterruptedException e1) {
+//                                        notifyError();
+//                                        e1.printStackTrace();
+//                                    } catch (ExecutionException e1) {
+//                                        notifyError();
+//                                        e1.printStackTrace();
+//                                    }
+//                                });
+//                            }
                         }
                         else {
                             notifyWrongLocation();
@@ -165,6 +157,23 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
             }
         });
     }
+
+    private void setAttributesLayer(Feature feature) {
+        Feature selectedFeatureTBL = dApplication.getSelectedFeatureTBL();
+        Map<String, Object> attributes = selectedFeatureTBL.getAttributes();
+        feature.getAttributes().put(Constant.CSKDLayerFields.MaKinhDoanh, attributes.get(Constant.CSKDTableFields.MaKinhDoanh).toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.MaPhuongXa, attributes.get(Constant.CSKDTableFields.MaPhuongXa).toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.MaHuyenTP, attributes.get(Constant.CSKDTableFields.MaHuyenTP).toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.TenDoanhNghiep, attributes.get(Constant.CSKDTableFields.TenDoanhNghiep).toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.DiaChi, attributes.get(Constant.CSKDTableFields.DiaChi).toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.DienThoai, attributes.get(Constant.CSKDTableFields.DienThoai).toString());
+        feature.getAttributes().put(Constant.CSKDLayerFields.NguoiTao, dApplication.getUser().getUserName());
+        feature.getAttributes().put(Constant.CSKDLayerFields.TG_TAO, Calendar.getInstance());
+        feature.getAttributes().put(Constant.CSKDLayerFields.TGCAP_NHAT, Calendar.getInstance());
+        feature.getAttributes().put(Constant.CSKDLayerFields.NGUOI_CAP_NHAT, dApplication.getUser().getUserName());
+    }
+
+
     private double[] pointToLogLat(Point point) {
         Geometry project = GeometryEngine.project(point, SpatialReferences.getWgs84());
         double[] location = {project.getExtent().getCenter().getX(), project.getExtent().getCenter().getY()};
@@ -180,24 +189,23 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
                 listListenableEditAsync.addDoneListener(new Runnable() {
                     @Override
                     public void run() {
+                        List<FeatureEditResult> featureEditResults = null;
                         try {
-                            List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
+                            featureEditResults = listListenableEditAsync.get();
                             if (featureEditResults.size() > 0) {
-                                if (mDialog != null && mDialog.isShowing()) {
-                                    mDialog.dismiss();
-                                }
+
                                 if (logLat != null) {
                                     updateCSKDTable(logLat);
                                 }
-                            } else {
-                                notifyCantInsert();
+//                            } else {
+//                                notifyCantInsert();
+//                            }
+                                else publishProgress();
                             }
                         } catch (InterruptedException e) {
-                            notifyError();
-                            e.printStackTrace();
+                            publishProgress();
                         } catch (ExecutionException e) {
-                            notifyError();
-                            e.printStackTrace();
+                            publishProgress();
                         }
 
                     }
@@ -227,22 +235,27 @@ public class AddFeatureAsync extends AsyncTask<Point, Void, Void> {
                     List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
                     if (featureEditResults.size() > 0) {
                         dApplication.setSelectedFeatureTBL(null);
-                    }
+                        publishProgress(true);
+                    } else publishProgress();
                 } catch (InterruptedException e) {
                     MySnackBar.make(mapView, mainActivity.getString(R.string.data_cant_add), false);
-                    e.printStackTrace();
+                    publishProgress();
                 } catch (ExecutionException e) {
                     MySnackBar.make(mapView, mainActivity.getString(R.string.data_cant_add), false);
-                    e.printStackTrace();
+                    publishProgress();
                 }
 
             });
         });
     }
     @Override
-    protected void onProgressUpdate(Void... values) {
+    protected void onProgressUpdate(Object... values) {
         super.onProgressUpdate(values);
-
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
+        if (values != null && values.length > 0 && values[0] instanceof Boolean && (Boolean) values[0])
+            new DAlertDialog().show(mainActivity, "Cập nhật thành công");
     }
 
 

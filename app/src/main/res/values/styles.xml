@@ -12,7 +12,18 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+    <style name="MyTextAppearance.Prime" parent="@android:style/TextAppearance">
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+    </style>
 
+    <style name="MyTextAppearance.Prime.Small" parent="MyTextAppearance.Prime">
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="MyTextAppearance.Prime.Big" parent="MyTextAppearance.Prime">
+        <item name="android:textSize">20sp</item>
+    </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
@@ -30,7 +41,10 @@
         <item name="android:textStyle">italic</item>
         <item name="android:textColor">@color/colorRed</item>
     </style>
+    <style name="MyTextAppearance.Black" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@android:color/black</item>
 
+    </style>
     <style name="MySeekBar" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressBackgroundTint">@color/colorGray</item>
         <item name="android:progressTint">@color/colorPrimaryLight</item>

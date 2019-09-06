@@ -47,7 +47,7 @@ public class TraCuuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tra_cuu);
         mDApplication = (DApplication) getApplication();
-        mServiceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
+        mServiceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
         this.txtTongItem = this.findViewById(R.id.txtTongItem);
         TraCuuActivity.this.findViewById(R.id.layout_tracuu).setOnClickListener(v -> showQueryDialog());
         txtDiaDiemHuyen = TraCuuActivity.this.findViewById(R.id.txt_tracuu_diadiem_huyen);

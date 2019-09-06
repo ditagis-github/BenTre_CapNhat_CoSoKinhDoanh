@@ -37,7 +37,6 @@ import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.layers.FeatureLayer;
-import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.MapView;
 
@@ -53,14 +52,13 @@ import bentre.ditagis.com.capnhatthongtin.adapter.FeatureViewMoreInfoAdapter;
 import bentre.ditagis.com.capnhatthongtin.async.EditAsync;
 import bentre.ditagis.com.capnhatthongtin.async.NotifyDataSetChangeAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
-import bentre.ditagis.com.capnhatthongtin.libs.FeatureLayerDTG;
 
 public class Popup extends AppCompatActivity {
     private MainActivity mainActivity;
     private ArcGISFeature mSelectedArcGISFeature = null;
-    private ServiceFeatureTable layer_CoSoKinhDoanh;
+    private ServiceFeatureTable mServiceFeatureTableCSKD, mServiceFeatureTable_ChuaCapNhat;
     private Callout mCallout;
-    private FeatureLayerDTG featureLayerDTG;
+    private FeatureLayer featureLayer;
     private List<String> lstFeatureType;
     private LinearLayout linearLayout;
     private MapView mMapView;
@@ -70,10 +68,11 @@ public class Popup extends AppCompatActivity {
     public Popup(MainActivity mainActivity, MapView mMapView, Callout callout) {
         this.mainActivity = mainActivity;
         this.mDApplication = (DApplication) this.mainActivity.getApplication();
-        this.layer_CoSoKinhDoanh = (ServiceFeatureTable) this.mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureLayer().getFeatureTable();
+        this.mServiceFeatureTableCSKD = (ServiceFeatureTable) this.mDApplication.getLayer_CoSoKinhDoanhDTG().getFeatureTable();
+        this.mServiceFeatureTable_ChuaCapNhat = (ServiceFeatureTable) this.mDApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
         this.mCallout = callout;
         this.mMapView = mMapView;
-        featureLayerDTG = mDApplication.getLayer_CoSoKinhDoanhDTG();
+        featureLayer = mDApplication.getLayer_CoSoKinhDoanhDTG();
     }
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +97,7 @@ public class Popup extends AppCompatActivity {
     }
 
     public void dimissCallout() {
-        FeatureLayer featureLayer = featureLayerDTG.getFeatureLayer();
+        FeatureLayer featureLayer = this.featureLayer;
         featureLayer.clearSelection();
         if (mCallout != null && mCallout.isShowing()) {
             mCallout.dismiss();
@@ -108,7 +107,7 @@ public class Popup extends AppCompatActivity {
     public LinearLayout showPopup(final ArcGISFeature arcGISFeature) {
         dimissCallout();
         this.mSelectedArcGISFeature = arcGISFeature;
-        FeatureLayer featureLayer = featureLayerDTG.getFeatureLayer();
+        FeatureLayer featureLayer = this.featureLayer;
         featureLayer.selectFeature(arcGISFeature);
         lstFeatureType = new ArrayList<>();
         for (int i = 0; i < arcGISFeature.getFeatureTable().getFeatureTypes().size(); i++) {
@@ -124,22 +123,22 @@ public class Popup extends AppCompatActivity {
         refreshPopup();
         Object nguoiTao = arcGISFeature.getAttributes().get(Constant.CSKDLayerFields.NguoiTao);
         boolean isUserCreate = nguoiTao != null && nguoiTao.toString().equals(mDApplication.getUser().getUserName());
-        if (featureLayerDTG.getAction().isEdit()) {
-            if (isUserCreate) {
+        boolean hasFeatureTBL = mDApplication.getSelectedFeatureTBL() != null;
+        if (isUserCreate && hasFeatureTBL) {
                 ImageButton imgBtn_ViewMoreInfo = linearLayout.findViewById(R.id.imgBtn_ViewMoreInfo);
             imgBtn_ViewMoreInfo.setVisibility(View.VISIBLE);
                 imgBtn_ViewMoreInfo.setOnClickListener(v -> viewMoreInfo());
-            }
+
             ImageButton imgBtn_changeLocation = linearLayout.findViewById(R.id.imgBtn_changeLocation);
             imgBtn_changeLocation.setVisibility(View.VISIBLE);
             imgBtn_changeLocation.setOnClickListener(v -> changeLocation());
         }
-        if (featureLayerDTG.getAction().isDelete() && isUserCreate) {
+        if (hasFeatureTBL) {
             ImageButton imgBtn_delete = linearLayout.findViewById(R.id.imgBtn_delete);
             imgBtn_delete.setVisibility(View.VISIBLE);
             imgBtn_delete.setOnClickListener(v -> {
                 arcGISFeature.getFeatureTable().getFeatureLayer().clearSelection();
-                deleteFeature();
+                deleteFeature((ArcGISFeature) mDApplication.getSelectedFeatureTBL());
             });
         }
         linearLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -175,7 +174,7 @@ public class Popup extends AppCompatActivity {
                 edit(parent, view, position, id);
             }
         });
-        String[] updateFields = featureLayerDTG.getUpdateFields();
+        String[] updateFields = new String[0];
         String[] uneditFields = mainActivity.getResources().getStringArray(R.array.uneditFields);
         String typeIdField = mSelectedArcGISFeature.getFeatureTable().getTypeIdField();
         for (Field field : this.mSelectedArcGISFeature.getFeatureTable().getFields()) {
@@ -208,25 +207,26 @@ public class Popup extends AppCompatActivity {
                         break;
                 }
             }
-            item.setEdit(false);
-            if (updateFields.length > 0) {
-                if (updateFields[0].equals("*") || updateFields[0].equals("")) {
-                    item.setEdit(true);
-                } else {
-                    for (String updateField : updateFields) {
-                        if (item.getFieldName().equals(updateField)) {
-                            item.setEdit(true);
-                            break;
-                        }
-                    }
-                }
-                for (String uneditField : uneditFields) {
-                    if (item.getFieldName().equals(uneditField)) {
-                        item.setEdit(false);
-                        break;
-                    }
-                }
-            }
+            item.setEdit(true);
+
+//            if (updateFields.length > 0) {
+//                if (updateFields[0].equals("*") || updateFields[0].equals("")) {
+//                    item.setEdit(true);
+//                } else {
+//                    for (String updateField : updateFields) {
+//                        if (item.getFieldName().equals(updateField)) {
+//                            item.setEdit(true);
+//                            break;
+//                        }
+//                    }
+//                }
+//                for (String uneditField : uneditFields) {
+//                    if (item.getFieldName().equals(uneditField)) {
+//                        item.setEdit(false);
+//                        break;
+//                    }
+//                }
+//            }
             item.setFieldType(field.getFieldType());
             adapter.add(item);
             adapter.notifyDataSetChanged();
@@ -249,7 +249,7 @@ public class Popup extends AppCompatActivity {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditAsync editAsync = new EditAsync(mainActivity, layer_CoSoKinhDoanh, mSelectedArcGISFeature);
+                EditAsync editAsync = new EditAsync(mainActivity, mServiceFeatureTableCSKD, mSelectedArcGISFeature);
                 try {
                     editAsync.execute(adapter).get();
                     refreshPopup();
@@ -413,7 +413,7 @@ public class Popup extends AppCompatActivity {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("%s = '%s'", Constant.CSKDTableFields.MaKinhDoanh, maKinhDoanh));
         queryParameters.setWhereClause(builder.toString());
-        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhatDTG().getFeatureLayer().getFeatureTable();
+        ServiceFeatureTable serviceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
         final ListenableFuture<FeatureQueryResult> feature = serviceFeatureTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
@@ -433,58 +433,64 @@ public class Popup extends AppCompatActivity {
 
     }
 
-    private void deleteFeature() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity, android.R.style.Theme_Material_Light_Dialog_Alert);
-        builder.setTitle("Xác nhận");
-        builder.setMessage(R.string.question_delete_point);
-        builder.setPositiveButton("Có", (dialog, which) -> {
-            dialog.dismiss();
-            mSelectedArcGISFeature.loadAsync();
-            Object maKinhDoanh = mSelectedArcGISFeature.getAttributes().get(Constant.CSKDLayerFields.MaKinhDoanh);
-            if (maKinhDoanh != null) {
-                getSelectedFeatureAndUpdateCSKDTable(maKinhDoanh.toString());
-            }
-            // update the selected feature
-            mSelectedArcGISFeature.addDoneLoadingListener(new Runnable() {
-                @Override
-                public void run() {
-                    if (mSelectedArcGISFeature.getLoadStatus() == LoadStatus.FAILED_TO_LOAD) {
-                        Log.d(getResources().getString(R.string.app_name), "Error while loading feature");
-                    }
+    private void deleteFeature(ArcGISFeature feature) {
+        if (feature != null) {
+            feature.getAttributes().put(Constant.CSKDTableFields.X, null);
+            feature.getAttributes().put(Constant.CSKDTableFields.Y, null);
+
+            ListenableFuture<Void> mapViewResult = mServiceFeatureTable_ChuaCapNhat.updateFeatureAsync(feature);
+            mapViewResult.addDoneListener(() -> {
+                final ListenableFuture<List<FeatureEditResult>> listListenableEditAsync = mServiceFeatureTable_ChuaCapNhat.applyEditsAsync();
+                listListenableEditAsync.addDoneListener(() -> {
                     try {
-                        // update feature in the feature table
-                        ListenableFuture<Void> mapViewResult = layer_CoSoKinhDoanh.deleteFeatureAsync(mSelectedArcGISFeature);
-                        mapViewResult.addDoneListener(new Runnable() {
-                            @Override
-                            public void run() {
-                                // apply change to the server
-                                final ListenableFuture<List<FeatureEditResult>> serverResult = layer_CoSoKinhDoanh.applyEditsAsync();
-                                serverResult.addDoneListener(() -> {
-                                    List<FeatureEditResult> edits = null;
-                                    try {
-                                        edits = serverResult.get();
-                                        if (edits.size() > 0) {
-                                        }
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    } catch (ExecutionException e) {
-                                        e.printStackTrace();
+                        List<FeatureEditResult> featureEditResults = listListenableEditAsync.get();
+                        if (featureEditResults.size() > 0) {
+                            try {
+                                // update feature in the feature table
+                                ListenableFuture<Void> deleteFeatureAsync = mServiceFeatureTableCSKD.deleteFeatureAsync(mSelectedArcGISFeature);
+                                deleteFeatureAsync.addDoneListener(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // apply change to the server
+                                        final ListenableFuture<List<FeatureEditResult>> serverResult = mServiceFeatureTableCSKD.applyEditsAsync();
+                                        serverResult.addDoneListener(() -> {
+                                            List<FeatureEditResult> edits = null;
+                                            try {
+                                                edits = serverResult.get();
+                                                if (edits.size() > 0) {
+                                                    new DAlertDialog().show(mainActivity, "Xóa thành công");
+                                                } else {
+                                                    new DAlertDialog().show(mainActivity, "Xóa thất bại");
+                                                }
+                                            } catch (InterruptedException e) {
+                                                new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", e.toString());
+                                            } catch (ExecutionException e) {
+                                                new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", e.toString());
+                                            }
+
+                                        });
                                     }
-
                                 });
-                            }
-                        });
 
+                            } catch (Exception e) {
+                                Log.e(getResources().getString(R.string.app_name), "deteting feature in the feature table failed: " + e.getMessage());
+                            }
+
+
+                        } else {
+                            new DAlertDialog().show(mainActivity, "Xóa thất bại");
+                        }
+                    } catch (InterruptedException e) {
+                        new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", e.toString());
                     } catch (Exception e) {
-                        Log.e(getResources().getString(R.string.app_name), "deteting feature in the feature table failed: " + e.getMessage());
+                        new DAlertDialog().show(mainActivity, "Có lỗi xảy ra", e.toString());
                     }
-                }
+
+                });
             });
-            if (mCallout != null) mCallout.dismiss();
-        }).setNegativeButton("Không", (dialog, which) -> dialog.dismiss()).setCancelable(false);
-        AlertDialog dialog = builder.create();
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.show();
+        }
+    }
+    private void deleteFeature() {
 
 
     }

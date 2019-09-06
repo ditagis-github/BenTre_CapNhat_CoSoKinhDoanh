@@ -6,6 +6,7 @@ import android.support.multidex.MultiDex;
 
 import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.ServiceFeatureTable;
+import com.esri.arcgisruntime.layers.FeatureLayer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +14,6 @@ import java.util.HashMap;
 import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.TraCuuActivity;
 import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.User;
-import bentre.ditagis.com.capnhatthongtin.libs.FeatureLayerDTG;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
@@ -38,24 +38,23 @@ public class DApplication extends Application {
     }
 
     //   table and layer co so kinh doanh
-    private FeatureLayerDTG table_CoSoKinhDoanhChuaCapNhatDTG;
+    private FeatureLayer serviceFeatureTableCSKD, serviceFeatureTableCSKD_ChuaCapNhat;
 
-    public FeatureLayerDTG getTable_CoSoKinhDoanhChuaCapNhatDTG() {
-        return table_CoSoKinhDoanhChuaCapNhatDTG;
+    public FeatureLayer getTable_CoSoKinhDoanhChuaCapNhat() {
+        return serviceFeatureTableCSKD_ChuaCapNhat;
     }
 
-    public void setTable_CoSoKinhDoanhChuaCapNhatDTG(FeatureLayerDTG table_CoSoKinhDoanhChuaCapNhatDTG) {
-        this.table_CoSoKinhDoanhChuaCapNhatDTG = table_CoSoKinhDoanhChuaCapNhatDTG;
+    public void setTable_CoSoKinhDoanhChuaCapNhat(FeatureLayer table_CoSoKinhDoanhChuaCapNhatDTG) {
+        this.serviceFeatureTableCSKD_ChuaCapNhat = table_CoSoKinhDoanhChuaCapNhatDTG;
     }
 
-    private FeatureLayerDTG layer_CoSoKinhDoanhDTG;
 
-    public FeatureLayerDTG getLayer_CoSoKinhDoanhDTG() {
-        return layer_CoSoKinhDoanhDTG;
+    public FeatureLayer getLayer_CoSoKinhDoanhDTG() {
+        return serviceFeatureTableCSKD;
     }
 
-    public void setLayer_CoSoKinhDoanhDTG(FeatureLayerDTG layer_CoSoKinhDoanhDTG) {
-        this.layer_CoSoKinhDoanhDTG = layer_CoSoKinhDoanhDTG;
+    public void setLayer_CoSoKinhDoanhDTG(FeatureLayer layer_CoSoKinhDoanhDTG) {
+        this.serviceFeatureTableCSKD = layer_CoSoKinhDoanhDTG;
     }
 
     // sft hanh chinh
