@@ -1,6 +1,5 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
-import android.app.ProgressDialog;
 import android.os.AsyncTask;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
@@ -26,7 +25,6 @@ import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
 public class EditGeometryAsync extends AsyncTask<Point, Object, Void> {
-    private ProgressDialog mDialog;
     private MainActivity mainActivity;
     private MapView mapView;
     private DApplication mApplication;
@@ -40,7 +38,6 @@ public class EditGeometryAsync extends AsyncTask<Point, Object, Void> {
         this.mApplication = (DApplication) mainActivity.getApplication();
         this.sft_CSKDLayer = (ServiceFeatureTable) this.mApplication.getLayer_CoSoKinhDoanhDTG().getFeatureTable();
         this.delegate = asyncResponse;
-        mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
         mFeatureEdit = mApplication.getSelectedFeatureLYR();
     }
     public interface AsyncResponse {
@@ -50,9 +47,7 @@ public class EditGeometryAsync extends AsyncTask<Point, Object, Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mDialog.setMessage("Đang xử lý...");
-        mDialog.setCancelable(false);
-        mDialog.show();
+        mApplication.getProgressDialog().show(mainActivity, mainActivity.getmRootView(), "Đang cập nhật tọa độ...");
     }
 
     @Override
@@ -181,8 +176,7 @@ public class EditGeometryAsync extends AsyncTask<Point, Object, Void> {
     @Override
     protected void onProgressUpdate(Object... values) {
         super.onProgressUpdate(values);
-        if (mDialog != null && mDialog.isShowing())
-            mDialog.dismiss();
+        mApplication.getProgressDialog().dismiss();
         delegate.processFinish(values[0]);
     }
 

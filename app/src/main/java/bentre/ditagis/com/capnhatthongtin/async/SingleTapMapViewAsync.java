@@ -1,7 +1,6 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -26,7 +25,6 @@ import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
 
 public class SingleTapMapViewAsync extends AsyncTask<Point, Object, Void> {
-    private ProgressDialog mDialog;
     private MainActivity mainActivity;
     private MapView mapView;
     private DApplication mApplication;
@@ -38,15 +36,12 @@ public class SingleTapMapViewAsync extends AsyncTask<Point, Object, Void> {
         this.popupInfos = popupInfos;
         this.mApplication = (DApplication) mainActivity.getApplication();
         this.featureLayer = mApplication.getLayer_CoSoKinhDoanhDTG();
-        mDialog = new ProgressDialog(mainActivity, android.R.style.Theme_Material_Dialog_Alert);
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mDialog.setMessage("Đang xác định CSKD...");
-        mDialog.setCancelable(false);
-        mDialog.show();
+        mApplication.getProgressDialog().show(mainActivity, mainActivity.getmRootView(), "Đang xác định CSKD...");
     }
 
     @Override
@@ -102,9 +97,7 @@ public class SingleTapMapViewAsync extends AsyncTask<Point, Object, Void> {
     @Override
     protected void onProgressUpdate(Object... values) {
         super.onProgressUpdate(values);
-        if (mDialog != null && mDialog.isShowing()) {
-            mDialog.dismiss();
-        }
+        mApplication.getProgressDialog().dismiss();
         if (values != null && values.length > 0 && values[0] != null && values[0] instanceof Feature)
             popupInfos.showPopup((ArcGISFeature) values[0]);
     }

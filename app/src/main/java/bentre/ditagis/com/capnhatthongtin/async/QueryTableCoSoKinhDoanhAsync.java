@@ -1,6 +1,5 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.TextView;
@@ -23,7 +22,6 @@ import bentre.ditagis.com.capnhatthongtin.adapter.TableCoSoKinhDoanhAdapter;
  */
 
 public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<Feature>, Void> {
-    private ProgressDialog dialog;
     private Context mContext;
     private ServiceFeatureTable serviceFeatureTable;
     private TableCoSoKinhDoanhAdapter tableCoSoKinhDoanhAdapter;
@@ -37,7 +35,6 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<Feature
         this.serviceFeatureTable = serviceFeatureTable;
         this.tableCoSoKinhDoanhAdapter = adapter;
         this.txtTongItem = txtTongItem;
-        dialog = new ProgressDialog(traCuuActivity, android.R.style.Theme_Material_Dialog_Alert);
         if (top.length > 0 && top[0] != 0)
             mTop = top[0];
     }
@@ -53,9 +50,6 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<Feature
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        dialog.setMessage(mContext.getString(R.string.async_dang_xu_ly));
-        dialog.setCancelable(false);
-        dialog.show();
 
     }
 
@@ -93,13 +87,13 @@ public class QueryTableCoSoKinhDoanhAsync extends AsyncTask<String, List<Feature
 
     @Override
     protected void onProgressUpdate(List<Feature>... values) {
-        if (dialog != null || dialog.isShowing()) dialog.dismiss();
         tableCoSoKinhDoanhAdapter.clear();
         if (values != null && values.length > 0) {
             tableCoSoKinhDoanhAdapter.setItems(values[0]);
             if (txtTongItem != null)
                 txtTongItem.setText(mContext.getString(R.string.nav_tongsoluong) + values[0].size());
-        }
+            delegate.processFinish(values[0]);
+        } else delegate.processFinish(null);
         tableCoSoKinhDoanhAdapter.notifyDataSetChanged();
 
         super.onProgressUpdate(values);

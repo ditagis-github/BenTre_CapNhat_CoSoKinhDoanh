@@ -50,7 +50,6 @@ import bentre.ditagis.com.capnhatthongtin.MainActivity;
 import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.adapter.FeatureViewMoreInfoAdapter;
 import bentre.ditagis.com.capnhatthongtin.async.EditAsync;
-import bentre.ditagis.com.capnhatthongtin.async.NotifyDataSetChangeAsync;
 import bentre.ditagis.com.capnhatthongtin.common.DApplication;
 
 public class Popup extends AppCompatActivity {
@@ -249,10 +248,18 @@ public class Popup extends AppCompatActivity {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditAsync editAsync = new EditAsync(mainActivity, mServiceFeatureTableCSKD, mSelectedArcGISFeature);
                 try {
+                    mDApplication.getProgressDialog().show(mainActivity, mainActivity.getmRootView(), "Đang cập nhật...");
+                    EditAsync editAsync = new EditAsync(mainActivity, mServiceFeatureTableCSKD, mSelectedArcGISFeature, new EditAsync.AsyncResponse() {
+                        @Override
+                        public void processFinish(Object output) {
+                            mDApplication.getProgressDialog().dismiss();
+                            refreshPopup();
+                        }
+                    });
+
                     editAsync.execute(adapter).get();
-                    refreshPopup();
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
@@ -395,7 +402,7 @@ public class Popup extends AppCompatActivity {
                     }
                     dialog.dismiss();
                     FeatureViewMoreInfoAdapter adapter = (FeatureViewMoreInfoAdapter) parent.getAdapter();
-                    new NotifyDataSetChangeAsync(mainActivity).execute(adapter);
+                    adapter.notifyDataSetChanged();
                 });
                 builder.setView(layout);
                 AlertDialog dialog = builder.create();
@@ -458,6 +465,7 @@ public class Popup extends AppCompatActivity {
                                             try {
                                                 edits = serverResult.get();
                                                 if (edits.size() > 0) {
+                                                    dimissCallout();
                                                     new DAlertDialog().show(mainActivity, "Xóa thành công");
                                                 } else {
                                                     new DAlertDialog().show(mainActivity, "Xóa thất bại");

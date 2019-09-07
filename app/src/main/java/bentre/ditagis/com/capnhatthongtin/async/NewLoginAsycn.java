@@ -27,8 +27,8 @@ public class NewLoginAsycn extends AsyncTask<String, Void, User> {
     private Exception exception;
     private ProgressDialog mDialog;
     private Context mContext;
-    private AsyncResponse mDelegate;
     private DApplication mApplication;
+    private AsyncResponse mDelegate;
 
     public interface AsyncResponse {
         void processFinish(User output);

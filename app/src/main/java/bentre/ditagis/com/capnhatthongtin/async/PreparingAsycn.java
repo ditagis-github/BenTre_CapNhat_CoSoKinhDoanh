@@ -1,6 +1,5 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -24,7 +23,6 @@ import bentre.ditagis.com.capnhatthongtin.utities.Preference;
 
 
 public class PreparingAsycn extends AsyncTask<Void, Void, Void> {
-    private ProgressDialog mDialog;
     private Context mContext;
     private AsyncResponse mDelegate;
 
@@ -40,10 +38,6 @@ public class PreparingAsycn extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        this.mDialog = new ProgressDialog(this.mContext, android.R.style.Theme_Material_Dialog_Alert);
-        this.mDialog.setMessage(mContext.getString(R.string.preparing));
-        this.mDialog.setCancelable(false);
-        this.mDialog.show();
     }
 
     @Override
@@ -89,7 +83,6 @@ public class PreparingAsycn extends AsyncTask<Void, Void, Void> {
     @Override
     protected void onPostExecute(Void value) {
 //        if (khachHang != null) {
-        mDialog.dismiss();
         this.mDelegate.processFinish(value);
 //        }
     }

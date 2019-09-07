@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -42,10 +43,12 @@ public class TraCuuActivity extends AppCompatActivity {
     TextView txtDiaDiemHuyen, txtDiaDiemXa, txtTrangThai;
     private ParameterQuery mParameterQuery;
     private Dialog mDialogQuery;
+    private ViewGroup mRootView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tra_cuu);
+        mRootView = findViewById(R.id.tracuu_main);
         mDApplication = (DApplication) getApplication();
         mServiceFeatureTable = (ServiceFeatureTable) mDApplication.getTable_CoSoKinhDoanhChuaCapNhat().getFeatureTable();
         this.txtTongItem = this.findViewById(R.id.txtTongItem);
@@ -214,6 +217,7 @@ public class TraCuuActivity extends AppCompatActivity {
     }
 
     private void queryFeatures() {
+        mDApplication.getProgressDialog().show(TraCuuActivity.this, mRootView, "Đang tra cứu CSKD...");
         mDApplication.setParameterQuery(mParameterQuery);
         StringBuilder builder = new StringBuilder();
         QueryParameters queryParameters = new QueryParameters();
@@ -269,6 +273,7 @@ public class TraCuuActivity extends AppCompatActivity {
 
         });
         new QueryTableCoSoKinhDoanhAsync(this, mServiceFeatureTable, txtTongItem, adapter, features -> {
+            mDApplication.getProgressDialog().dismiss();
         }, mParameterQuery.top).execute(builder.toString());
 
     }

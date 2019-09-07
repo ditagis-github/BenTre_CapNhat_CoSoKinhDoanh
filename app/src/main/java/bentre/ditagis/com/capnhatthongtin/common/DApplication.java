@@ -17,6 +17,7 @@ import bentre.ditagis.com.capnhatthongtin.entities.entitiesDB.User;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewAddDoneLoadingListener;
 import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
+import bentre.ditagis.com.capnhatthongtin.utities.DProgressDialog;
 
 
 public class DApplication extends Application {
@@ -24,6 +25,27 @@ public class DApplication extends Application {
     protected void attachBaseContext(Context context) {
         super.attachBaseContext(context);
         MultiDex.install(this);
+    }
+
+    private DProgressDialog progressDialog;
+    private int countElementMustLoad = 0;
+
+    public int getCountElementMustLoad() {
+        return countElementMustLoad;
+    }
+
+    public void setCountElementMustLoad(int countElementMustLoad) {
+        this.countElementMustLoad = countElementMustLoad;
+        if (this.countElementMustLoad == 0)
+            progressDialog.dismiss();
+    }
+
+    public DProgressDialog getProgressDialog() {
+        return progressDialog;
+    }
+
+    public void setProgressDialog(DProgressDialog progressDialog) {
+        this.progressDialog = progressDialog;
     }
 
     //user name login

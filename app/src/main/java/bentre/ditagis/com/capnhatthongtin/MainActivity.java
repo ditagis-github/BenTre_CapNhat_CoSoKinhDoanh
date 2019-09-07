@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -90,6 +91,7 @@ import bentre.ditagis.com.capnhatthongtin.mapping.MapViewHandler;
 import bentre.ditagis.com.capnhatthongtin.utities.CheckConnectInternet;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 import bentre.ditagis.com.capnhatthongtin.utities.DAlertDialog;
+import bentre.ditagis.com.capnhatthongtin.utities.DProgressDialog;
 import bentre.ditagis.com.capnhatthongtin.utities.LocationHelper;
 import bentre.ditagis.com.capnhatthongtin.utities.MySnackBar;
 import bentre.ditagis.com.capnhatthongtin.utities.Popup;
@@ -122,6 +124,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Location mLocation;
     private DApplication mApplication;
     private GraphicsOverlay graphicsOverlay;
+    private ViewGroup mRootView;
+
+    public ViewGroup getmRootView() {
+        return mRootView;
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -129,14 +136,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capnhat_cskd);
+        mRootView = findViewById(R.id.main_container);
         setLicense();
         mApplication = (DApplication) getApplication();
         setUp();
         initListViewSearch();
 
         initLayerListView();
-
-
+        mApplication.setProgressDialog(new DProgressDialog());
+        mApplication.getProgressDialog().show(this, mRootView, "Đang khởi tạo ứng dụng");
         setOnClickListener();
         startGPS();
         startSignIn();
@@ -277,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         requestPermisson();
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_container);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
@@ -393,14 +401,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void setFeatureService() {
         if (ListObjectDB.getInstance().getLstFeatureLayerDTG().size() == 0) return;
         mFeatureLayerDTGS = new ArrayList<>();
+        mApplication.setCountElementMustLoad(ListObjectDB.getInstance().getLstFeatureLayerDTG().size() + 2
+                // thêm 2 phần tử trong mapviewadddonelistener
+        );
         MapViewAddDoneLoadingListener mapViewAddDoneLoadingListener = new MapViewAddDoneLoadingListener(MainActivity.this);
         for (final LayerInfoDTG layerInfoDTG : ListObjectDB.getInstance().getLstFeatureLayerDTG()) {
-            if (!layerInfoDTG.isView()) continue;
+            if (!layerInfoDTG.isView()) {
+                mApplication.setCountElementMustLoad(mApplication.getCountElementMustLoad() - 1);
+                continue;
+            }
             String url = layerInfoDTG.getUrl();
             if (url.equals("https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDe/FeatureServer/0"))
+                url = "https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDeTest/FeatureServer/0";
+            else if (url.equals("https://ditagis.com/arcgis/rest/services/BenTre_QLKD/CSKD/FeatureServer/1"))
                 url = "https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDeTest/FeatureServer/1";
-            else if(url.equals("http://ditagis.com/arcgis/rest/services/BenTre_QLKD/CSKD/FeatureServer/1"))
-                url = "https://ditagis.com/arcgis/rest/services/BenTre_QLKD/ChuyenDeTest/FeatureServer/2";
             ServiceFeatureTable serviceFeatureTable = new ServiceFeatureTable(url);
             FeatureLayer featureLayer = new FeatureLayer(serviceFeatureTable);
             featureLayer.setName(layerInfoDTG.getTitleLayer());
@@ -422,17 +436,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 featureLayer.addDoneLoadingListener(new Runnable() {
                     @Override
                     public void run() {
+                        mApplication.setCountElementMustLoad(mApplication.getCountElementMustLoad() - 1);
                         mMapViewHandler = new MapViewHandler(mMapView, MainActivity.this);
                         mApplication.setMapViewHandler(mMapViewHandler);
                         mMapViewHandler.setPopupInfos(mPopupInfos);
                     }
                 });
-            }
-            if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.table_cosokinhdoanh))) {
+            } else if (layerInfoDTG.getId() != null && layerInfoDTG.getId().equals(getString(R.string.table_cosokinhdoanh))) {
+                mApplication.setCountElementMustLoad(mApplication.getCountElementMustLoad() - 1);
                 mApplication.setTable_CoSoKinhDoanhChuaCapNhat(featureLayer);
                 mFeatureLayerDTGS.add(featureLayerDTG);
-            }
-            if (layerInfoDTG.getId().toUpperCase().equals(getString(R.string.IDLayer_Basemap))) {
+            } else if (layerInfoDTG.getId().toUpperCase().equals(getString(R.string.IDLayer_Basemap))) {
                 hanhChinhImageLayers = new ArcGISMapImageLayer(url);
                 hanhChinhImageLayers.setId(layerInfoDTG.getId());
                 mMapView.getMap().getOperationalLayers().add(hanhChinhImageLayers);
@@ -451,9 +465,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         mapViewAddDoneLoadingListener.getHanhChinh();
                     }
-
+                    mApplication.setCountElementMustLoad(mApplication.getCountElementMustLoad() - 1);
                 });
+
                 hanhChinhImageLayers.loadAsync();
+            } else {
+                mApplication.setCountElementMustLoad(mApplication.getCountElementMustLoad() - 1);
             }
         }
         if (mFeatureLayerDTGS.size() == 0) {
@@ -576,7 +593,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_container);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -656,12 +673,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             this.startActivityForResult(intent, Constant.REQUEST.QUERY);
                 break;
             case R.id.nav_refresh:
-                setFeatureService();
+                initMapView();
             case R.id.nav_logOut:
             startSignIn();
                 break;
         }
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.main_container);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

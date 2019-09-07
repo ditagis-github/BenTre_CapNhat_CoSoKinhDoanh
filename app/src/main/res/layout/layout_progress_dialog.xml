@@ -25,7 +25,13 @@
             android:textSize="17dp"
             android:textStyle="bold" />
     </LinearLayout>
-
+    <TextView
+        android:id="@+id/txt_progress_dialog_title"
+        style="@style/MyTextAppearance.Prime.Big"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_small"
+        android:text="Đang tìm kiếm dữ liệu..." />
     <ProgressBar
         android:id="@+id/progress__progress_dialog__"
         style="?android:attr/progressBarStyleHorizontal"
@@ -38,11 +44,5 @@
         android:indeterminateTint="@color/colorPrimary"
         android:max="100" />
 
-    <TextView
-        android:id="@+id/txt_progress_dialog_title"
-        style="@style/MyTextAppearance.Prime.Big"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin_small"
-        android:text="Đang tìm kiếm dữ liệu..." />
+
 </LinearLayout>

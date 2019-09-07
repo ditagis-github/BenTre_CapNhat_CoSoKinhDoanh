@@ -26,7 +26,6 @@
     <string name="nav_tongsoluong">Tổng số lượng: </string>
 
     <!--async-->
-    <string name="async_dang_xu_ly">Đang xử lý...</string>
     <string name="async_dang_cap_nhat_giao_dien">Đang cập nhật giao diện...</string>
     <string name="async_dang_tai_du_lieu">Đang tải dữ liệu…</string>
 
@@ -60,7 +59,6 @@
     <string name="connect_message">Đang kết nối đến máy chủ…</string>
 
 
-    <string name="preparing">Đang khởi tạo bản đồ…</string>
     <!--sql column login begin-->
     <string name="sql_coloumn_sys_id">LayerID</string>
     <string name="sql_coloumn_sys_title">LayerTitle</string>
@@ -82,7 +80,6 @@
     <string name="data_cant_add">Không thêm được dữ liệu</string>
     <string name="data_wrong_location">Vị trí cơ sở kinh doanh không thuộc vùng quản lý</string>
     <string name="error_occurred_notify">Đã xảy ra lỗi</string>
-    <string name="processing">Đang xử lý...</string>
     <string name="all_value">Tất cả</string>
     <string name="all_district">Toàn huyện, thành phố</string>
     <string name="value_is_null">Không có giá trị</string>

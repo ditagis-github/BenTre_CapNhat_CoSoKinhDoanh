@@ -1,6 +1,5 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
@@ -14,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
-import bentre.ditagis.com.capnhatthongtin.R;
-
 /**
  * Created by ThanLe on 4/16/2018.
  */
@@ -27,7 +24,6 @@ public class QueryHanhChinhsAsync extends AsyncTask<Void, ArrayList<Feature>, Vo
 
     public AsyncResponse delegate = null;
 
-    private ProgressDialog mDialog;
     private Context mContext;
     private ServiceFeatureTable mServiceFeatureTable;
     public  ArrayList<Feature> features;
@@ -35,7 +31,6 @@ public class QueryHanhChinhsAsync extends AsyncTask<Void, ArrayList<Feature>, Vo
     public QueryHanhChinhsAsync(Context context, ServiceFeatureTable serviceFeatureTable, AsyncResponse delegate) {
         mContext = context;
         mServiceFeatureTable = serviceFeatureTable;
-        mDialog = new ProgressDialog(context, android.R.style.Theme_Material_Dialog_Alert);
         this.delegate = delegate;
     }
 
@@ -56,7 +51,6 @@ public class QueryHanhChinhsAsync extends AsyncTask<Void, ArrayList<Feature>, Vo
                         Feature feature = iterator.next();
                         features.add(feature);
                     }
-                    mDialog.dismiss();
                     publishProgress(features);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -71,9 +65,6 @@ public class QueryHanhChinhsAsync extends AsyncTask<Void, ArrayList<Feature>, Vo
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        mDialog.setMessage(mContext.getString(R.string.async_dang_tai_du_lieu));
-        mDialog.setCancelable(false);
-        mDialog.show();
 
     }
 

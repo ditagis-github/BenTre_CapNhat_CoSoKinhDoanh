@@ -1,6 +1,5 @@
 package bentre.ditagis.com.capnhatthongtin.async;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 
@@ -16,7 +15,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import bentre.ditagis.com.capnhatthongtin.R;
 import bentre.ditagis.com.capnhatthongtin.adapter.FeatureViewMoreInfoAdapter;
 import bentre.ditagis.com.capnhatthongtin.utities.Constant;
 
@@ -25,25 +23,25 @@ import bentre.ditagis.com.capnhatthongtin.utities.Constant;
  */
 
 public class EditAsync extends AsyncTask<FeatureViewMoreInfoAdapter, Void, Void> {
-    private ProgressDialog dialog;
     private Context mContext;
     private ServiceFeatureTable mServiceFeatureTable;
     private ArcGISFeature mSelectedArcGISFeature = null;
 
-    public EditAsync(Context context, ServiceFeatureTable serviceFeatureTable, ArcGISFeature selectedArcGISFeature) {
+    public EditAsync(Context context, ServiceFeatureTable serviceFeatureTable, ArcGISFeature selectedArcGISFeature, AsyncResponse delegate) {
         mContext = context;
         mServiceFeatureTable = serviceFeatureTable;
         mSelectedArcGISFeature = selectedArcGISFeature;
-        dialog = new ProgressDialog(context, android.R.style.Theme_Material_Dialog_Alert);
+        this.mDelegate = delegate;
     }
 
+    private AsyncResponse mDelegate;
+
+    public interface AsyncResponse {
+        void processFinish(Object output);
+    }
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        dialog.setMessage(mContext.getString(R.string.async_dang_xu_ly));
-        dialog.setCancelable(false);
-
-        dialog.show();
 
     }
 
@@ -103,15 +101,14 @@ public class EditAsync extends AsyncTask<FeatureViewMoreInfoAdapter, Void, Void>
                             mServiceFeatureTable.applyEditsAsync().addDoneListener(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (dialog != null && dialog.isShowing()) {
-                                        dialog.dismiss();
-                                    }
+                                    publishProgress();
                                 }
                             });
                         }
                     });
 
                 } catch (Exception e) {
+                    publishProgress();
                 }
             }
         });
@@ -144,7 +141,7 @@ public class EditAsync extends AsyncTask<FeatureViewMoreInfoAdapter, Void, Void>
     @Override
     protected void onProgressUpdate(Void... values) {
         super.onProgressUpdate(values);
-
+        mDelegate.processFinish(null);
     }
 
 

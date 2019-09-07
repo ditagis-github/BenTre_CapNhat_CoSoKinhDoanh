@@ -22,6 +22,7 @@ public class MapViewAddDoneLoadingListener {
         HashMap<String, String> hashMapHuyenTP = new HashMap<>();
         ArrayList<HanhChinh> hanhChinhXaList = new ArrayList<>();
         new QueryHanhChinhsAsync(mMainActivity, this.mDApplication.getSft_HanhChinhHuyen(), output -> {
+            mDApplication.setCountElementMustLoad(mDApplication.getCountElementMustLoad() - 1);
             for (Feature feature : output) {
                 String tenHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.tenhuyen).toString();
                 String maHuyenTP = feature.getAttributes().get(Constant.HanhChinhFields.maquanhuyen).toString();
@@ -30,6 +31,7 @@ public class MapViewAddDoneLoadingListener {
             mDApplication.setHashMapHuyenTP(hashMapHuyenTP);
         }).execute();
         new QueryHanhChinhsAsync(mMainActivity, this.mDApplication.getSft_HanhChinhXa(), output ->{
+            mDApplication.setCountElementMustLoad(mDApplication.getCountElementMustLoad() - 1);
             for (Feature feature : output) {
                 String tenPhuongXa = feature.getAttributes().get(Constant.HanhChinhFields.tenxa).toString();
                 String maPhuongXa = feature.getAttributes().get(Constant.HanhChinhFields.maxa).toString();
