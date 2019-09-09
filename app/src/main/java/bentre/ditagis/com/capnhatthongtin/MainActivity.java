@@ -125,7 +125,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DApplication mApplication;
     private GraphicsOverlay graphicsOverlay;
     private ViewGroup mRootView;
-
+    private EditText edit_latitude ;
+    private EditText edit_longtitude ;
     public ViewGroup getmRootView() {
         return mRootView;
     }
@@ -136,8 +137,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capnhat_cskd);
+        edit_latitude = ((EditText) findViewById(R.id.edit_latitude));
+        edit_longtitude = ((EditText) findViewById(R.id.edit_longtitude));
         mRootView = findViewById(R.id.main_container);
         setLicense();
+        init();
+        startSignIn();
+    }
+
+    private void init() {
         mApplication = (DApplication) getApplication();
         setUp();
         initListViewSearch();
@@ -147,10 +155,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mApplication.getProgressDialog().show(this, mRootView, "Đang khởi tạo ứng dụng");
         setOnClickListener();
         startGPS();
-        startSignIn();
         mApplication.setMainActivity(this);
     }
-
     private void startGPS() {
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -308,8 +314,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         if (CheckConnectInternet.isOnline(this))
             preparingAsycn.execute();
-        final EditText edit_latitude = ((EditText) findViewById(R.id.edit_latitude));
-        final EditText edit_longtitude = ((EditText) findViewById(R.id.edit_longtitude));
+
         mMapView.setOnTouchListener(new DefaultMapViewOnTouchListener(this, mMapView) {
             @Override
             public boolean onSingleTapConfirmed(MotionEvent e) {
@@ -331,10 +336,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 if (mMapViewHandler != null) {
-                    Point center = ((MapView) mMapView).getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
-                    double[] location = mMapViewHandler.pointToLogLat(center);
-                    edit_longtitude.setText(location[0] + "");
-                    edit_latitude.setText(location[1] + "");
+                    showLongLat();
                 }
                 return super.onScroll(e1, e2, distanceX, distanceY);
             }
@@ -361,6 +363,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mMapView.getGraphicsOverlays().add(graphicsOverlay);
     }
 
+    private void showLongLat() {
+        Point center = ((MapView) mMapView).getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
+        double[] location = mMapViewHandler.pointToLongLat(center);
+        edit_longtitude.setText(location[0] + "");
+        edit_latitude.setText(location[1] + "");
+    }
     private void initLayerListView() {
         findViewById(R.id.layout_layer_open_street_map).setOnClickListener(this);
         findViewById(R.id.layout_layer_street_map).setOnClickListener(this);
@@ -399,8 +407,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void setFeatureService() {
+        mMap.getOperationalLayers().clear();
         if (ListObjectDB.getInstance().getLstFeatureLayerDTG().size() == 0) return;
         mFeatureLayerDTGS = new ArrayList<>();
+
         mApplication.setCountElementMustLoad(ListObjectDB.getInstance().getLstFeatureLayerDTG().size() + 2
                 // thêm 2 phần tử trong mapviewadddonelistener
         );
@@ -673,7 +683,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             this.startActivityForResult(intent, Constant.REQUEST.QUERY);
                 break;
             case R.id.nav_refresh:
-                initMapView();
+//                init();
+//                initMapView();
+                setFeatureService();
             case R.id.nav_logOut:
             startSignIn();
                 break;
@@ -794,6 +806,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void addFeature() {
+        showLongLat();
         findViewById(R.id.linear_addfeature).setVisibility(View.VISIBLE);
         findViewById(R.id.img_map_pin).setVisibility(View.VISIBLE);
         findViewById(R.id.floatBtnAdd).setVisibility(View.GONE);

@@ -31,8 +31,8 @@
                     android:title="@string/nav_tra_cuu" />
                 <item
                     android:id="@+id/nav_refresh"
-                    android:icon="@drawable/ic_refresh"
                     android:visible="false"
+                    android:icon="@drawable/ic_refresh"
                     android:title="Tải lại bản đồ" />
             </group>
         </menu>

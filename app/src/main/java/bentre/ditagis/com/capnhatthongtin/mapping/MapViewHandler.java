@@ -122,7 +122,7 @@ public class MapViewHandler extends Activity {
 //        });
 //    }
 
-    public double[] pointToLogLat(Point point) {
+    public double[] pointToLongLat(Point point) {
         Geometry project = GeometryEngine.project(point, SpatialReferences.getWgs84());
         double[] location = {project.getExtent().getCenter().getX(), project.getExtent().getCenter().getY()};
         return location;
@@ -157,11 +157,12 @@ public class MapViewHandler extends Activity {
     }
 
     public void queryByMaKinhDoanh(Feature item) {
+        mDApplication.getProgressDialog().show(mainActivity, mainActivity.getmRootView(), "Đang tìm kiếm cskd...");
         Object maKinhDoanh = item.getAttributes().get(Constant.CSKDTableFields.MaKinhDoanh);
         if (maKinhDoanh != null) {
             final QueryParameters queryParameters = new QueryParameters();
             StringBuilder builder = new StringBuilder();
-            builder.append(Constant.CSKDLayerFields.MaKinhDoanh + " like N'%" + maKinhDoanh.toString() + "%'");
+            builder.append(Constant.CSKDLayerFields.MaKinhDoanh + "  ='" + maKinhDoanh.toString() + "'");
             queryParameters.setWhereClause(builder.toString());
             queryParameters.setReturnGeometry(true);
             queryFeaturesAsync(queryParameters, item);
@@ -174,6 +175,7 @@ public class MapViewHandler extends Activity {
         final ListenableFuture<FeatureQueryResult> feature = sft_CSKDLayer.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
         feature.addDoneListener(() -> {
             try {
+                mDApplication.getProgressDialog().dismiss();
                 FeatureQueryResult result = feature.get();
                 Object x = item.getAttributes().get(Constant.CSKDTableFields.X);
                 Object y = item.getAttributes().get(Constant.CSKDTableFields.Y);
@@ -190,7 +192,7 @@ public class MapViewHandler extends Activity {
 //                                    Geometry geometry = next.getGeometry();
 //                                    if (geometry != null) {
 //                                        Point center = geometry.getExtent().getCenter();
-//                                        double[] logLat = pointToLogLat(center);
+//                                        double[] logLat = pointToLongLat(center);
 //                                        updateCSKDTable(logLat);
 //                                    }
 //                                    dialog.dismiss();
@@ -208,6 +210,16 @@ public class MapViewHandler extends Activity {
                                 .setMessage("Không tìm được CSKD đã thêm!")
                                 .setIcon(R.drawable.add)
                                 .setPositiveButton("Thêm lại", (dialog, whichButton) -> {
+                                    try {
+                                        Point point = mMapView.getCurrentViewpoint(Viewpoint.Type.CENTER_AND_SCALE).getTargetGeometry().getExtent().getCenter();
+                                        Point pointLongLat = new Point(Double.parseDouble((String) y), Double.parseDouble((String) x));
+                                        Geometry geometryWg = GeometryEngine.project(pointLongLat, SpatialReferences.getWgs84());
+                                        Geometry geometryWM = GeometryEngine.project(geometryWg, SpatialReferences.getWebMercator());
+                                        Point point1 = geometryWM.getExtent().getCenter();
+                                        mMapView.setViewpointCenterAsync(point1);
+                                    } catch (Exception e) {
+
+                                    }
                                     mainActivity.addFeature();
                                     dialog.dismiss();
                                 }).setCancelable(false)
